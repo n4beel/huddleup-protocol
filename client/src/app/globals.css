@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* Global design tokens (CSS variables) */
+:root {
+  /* 🎨 Color palette */
+  --primary: #f67450;
+  --secondary: #ffdbb6;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #0ea5e9;
+  --neutral: #6b7280;
+  --background: #f9fafb;
+  --dark: #001f3e;
+
+  /* 🖋️ Fonts */
+  --font-montserrat: var(--font-montserrat), sans-serif;
+  --font-inter: var(--font-inter), sans-serif;
+}
+
+/* ⚙️ Tailwind theme bridge */
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-neutral: var(--neutral);
+  --color-background: var(--background);
+  --color-dark: var(--dark);
+
+  /* Fonts */
+  --font-heading: var(--font-montserrat);
+  --font-body: var(--font-inter);
+}
+
+/* 🌐 Base Styles */
+body {
+  background-color: var(--background);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-montserrat);
+  font-weight: 600;
+  margin: 0;
+}
+
+p,
+span,
+li,
+a,
+input,
+button,
+textarea {
+  font-family: var(--font-inter);
+}
+
+button {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 🌗 Optional dark mode base */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f172a;
+    --foreground: #f9fafb;
+    --neutral: #9ca3af;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
