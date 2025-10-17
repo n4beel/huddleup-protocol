@@ -1,48 +1,54 @@
 @import "tailwindcss";
 
-/* Global design tokens (CSS variables) */
+/* 🌈 Global design tokens (CSS variables) */
 :root {
-  /* 🎨 Color palette */
   --primary: #f67450;
   --secondary: #ffdbb6;
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
   --info: #0ea5e9;
-  --neutral: #6b7280;
   --background: #f9fafb;
   --dark: #001f3e;
+  --foreground: #90a1b9;
+  --black: black;
 
   /* 🖋️ Fonts */
-  --font-montserrat: var(--font-montserrat), sans-serif;
-  --font-inter: var(--font-inter), sans-serif;
+  --font-poppins: var(--font-poppins), sans-serif;
+  --font-arial: Arial, sans-serif;
 }
 
 /* ⚙️ Tailwind theme bridge */
 @theme inline {
+  /* 🎨 Colors */
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-success: var(--success);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-info: var(--info);
-  --color-neutral: var(--neutral);
-  --color-background: var(--background);
-  --color-dark: var(--dark);
 
-  /* Fonts */
-  --font-heading: var(--font-montserrat);
-  --font-body: var(--font-inter);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-dark: var(--dark);
+  --color-black: var(--black);
 }
 
 /* 🌐 Base Styles */
 body {
   background-color: var(--background);
-  font-family: var(--font-inter);
+  color: var(--color-dark);
+  font-family: var(--font-arial);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
   padding: 0;
+  background: #f67450;
+  background: radial-gradient(
+    circle,
+    rgba(246, 116, 80, 0.27) 60%,
+    rgba(255, 219, 182, 0.31) 100%
+  );
 }
 
 h1,
@@ -51,19 +57,12 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-montserrat);
-  font-weight: 600;
+  font-family: var(--font-poppins);
   margin: 0;
 }
 
-p,
-span,
-li,
-a,
-input,
-button,
-textarea {
-  font-family: var(--font-inter);
+p {
+  font-family: var(--font-arial);
 }
 
 button {
@@ -71,16 +70,11 @@ button {
   transition: all 0.2s ease;
 }
 
-/* 🌗 Optional dark mode base */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f9fafb;
-    --neutral: #9ca3af;
-  }
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-  }
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

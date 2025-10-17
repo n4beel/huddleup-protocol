@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
-import { Montserrat, Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
+import Container from "./components/common/Container";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+// Load Poppins (for headings)
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-  display: "swap",
-});
+// Arial is a system font, no need to import
+// We'll use it directly via CSS variable in globals.css
 
 export const metadata: Metadata = {
   title: "HuddleUp — Social Impact Events",
@@ -46,10 +44,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${montserrat.variable} ${inter.variable} antialiased`}
-      >
-        {children}
+      <body className={`${poppins.variable} antialiased font-body`}>
+        <Container>
+          {children}
+        </Container>
       </body>
     </html>
   );
