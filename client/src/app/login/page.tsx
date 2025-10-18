@@ -9,7 +9,7 @@ const Login = () => {
       {/* Hero Image */}
       <div className="w-full lg:max-w-md mx-auto flex items-center justify-center mt-8 lg:mt-2">
         <Image
-          src="/assets/login.svg"
+          src="/assets/login.png"
           alt="Login Main Image"
           width={500}
           height={500}

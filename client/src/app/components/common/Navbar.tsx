@@ -5,20 +5,19 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
 
-const BottomNav = () => {
+const Navbar = () => {
     const pathname = usePathname()
 
     const navItems = [
         { href: '/', label: 'Home', icon: House },
-        { href: '/active', label: 'Active', icon: ChartColumn },
-        { href: '/create', label: 'Build', icon: Plus },
-        { href: '/history', label: 'History', icon: History },
-        { href: '/wallet', label: 'Wallet', icon: Wallet2 },
+        { href: '/myevents', label: 'My Events', icon: ChartColumn },
+        { href: '/history', label: 'Leaderboard', icon: History },
+        { href: '/profile', label: 'Profile', icon: Wallet2 },
     ]
 
     return (
-        <nav className='w-full lg:max-w-3xl mx-auto flex items-center justify-center fixed bottom-0 left-0 right-0 p-4'>
-            <div className='w-full max-w-[100%] bg-dark p-2 rounded-xl flex items-center justify-around'>
+        <nav className='w-full lg:max-w-5xl mx-auto flex items-center justify-center p-2'>
+            <div className='w-full bg-white p-2  flex items-center justify-between'>
                 {navItems.map(({ href, label, icon: Icon }) => {
                     const isActive = pathname === href
                     return (
@@ -26,13 +25,13 @@ const BottomNav = () => {
                             <div
                                 className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
                                     isActive
-                                        ? 'bg-secondary text-black'
-                                        : 'text-white'
+                                        ? 'text-primary'
+                                        : 'text-black'
                                 }`}
                             >
                                 <Icon
-                                    className={`w-5 ${
-                                        isActive ? 'text-black' : 'text-white'
+                                    className={`w-10 ${
+                                        isActive ? 'text-primary' : 'text-black'
                                     }`}
                                 />
                                 <span className='text-xs'>{label}</span>
@@ -45,4 +44,4 @@ const BottomNav = () => {
     )
 }
 
-export default BottomNav
+export default Navbar

@@ -1,6 +1,7 @@
 import React from 'react'
-import BottomNav from './BottomNav';
+
 import TopBar from './TopBar';
+import Navbar from './Navbar';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -12,8 +13,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, showTopbar = true }) =>
             {showTopbar ? (
                 <TopBar />
             ) : ''}
+            <Navbar />
             {children}
-            <BottomNav />
         </div>
     )
 }
