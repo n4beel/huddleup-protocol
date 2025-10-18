@@ -51,6 +51,8 @@ The server will start on `http://localhost:3000`
 
 - `GET /` - Welcome message
 - `GET /health` - Health check (includes database connection status)
+- `GET /cors-test` - Test CORS configuration
+- `GET /api/docs` - Swagger API documentation (interactive)
 
 ## Project Structure
 
@@ -61,6 +63,9 @@ src/
 ├── database/
 │   ├── database.module.ts    # Database module
 │   └── neo4j.service.ts      # Neo4j service
+├── dto/
+│   ├── health-response.dto.ts      # Health response DTO
+│   └── cors-test-response.dto.ts   # CORS test response DTO
 ├── app.controller.ts         # Main controller
 ├── app.service.ts           # Main service
 ├── app.module.ts            # Main module
@@ -92,6 +97,15 @@ await this.neo4jService.runWriteQuery(
   { name: 'John Doe' }
 );
 ```
+
+## API Documentation
+
+The application includes comprehensive Swagger/OpenAPI documentation:
+
+- **Interactive Documentation:** Visit `http://localhost:3000/api/docs` when the server is running
+- **API Schema:** Automatically generated from TypeScript decorators
+- **Test Endpoints:** Try out API calls directly from the documentation interface
+- **Response Models:** Detailed schemas for all API responses
 
 ## Development
 

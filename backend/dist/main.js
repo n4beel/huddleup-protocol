@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
@@ -12,10 +13,6 @@ async function bootstrap() {
         'http://localhost:3001',
         'http://localhost:3002',
     ];
-    if (process.env.CORS_ORIGIN) {
-        const additionalOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
-        allowedOrigins.push(...additionalOrigins);
-    }
     app.enableCors({
         origin: (origin, callback) => {
             if (!origin)
@@ -37,11 +34,26 @@ async function bootstrap() {
         whitelist: true,
         forbidNonWhitelisted: true,
     }));
+    const config = new swagger_1.DocumentBuilder()
+        .setTitle('HuddleUp Protocol API')
+        .setDescription('A decentralized social protocol API built for EthOnline')
+        .setVersion('1.0')
+        .addTag('health', 'Health check endpoints')
+        .addTag('cors', 'CORS testing endpoints')
+        .addBearerAuth()
+        .build();
+    const document = swagger_1.SwaggerModule.createDocument(app, config);
+    swagger_1.SwaggerModule.setup('api/docs', app, document, {
+        swaggerOptions: {
+            persistAuthorization: true,
+        },
+    });
     const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`🚀 HuddleUp Backend running on port ${port}`);
     console.log(`🌐 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
     console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📚 Swagger documentation available at: http://localhost:${port}/api/docs`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
