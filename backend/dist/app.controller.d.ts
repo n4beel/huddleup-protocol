@@ -16,4 +16,9 @@ export declare class AppController {
         error: any;
         version: string;
     }>;
+    getCorsTest(): {
+        message: string;
+        timestamp: string;
+        allowedOrigins: string[];
+    };
 }

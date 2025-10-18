@@ -14,4 +14,19 @@ export class AppController {
   getHealth() {
     return this.appService.getHealth();
   }
+
+  @Get('cors-test')
+  getCorsTest() {
+    return {
+      message: 'CORS is working correctly!',
+      timestamp: new Date().toISOString(),
+      allowedOrigins: [
+        'https://huddleup-protocol.vercel.app',
+        'https://huddleup-protocol-admin.vercel.app',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002'
+      ]
+    };
+  }
 }

@@ -1,0 +1,63 @@
+name: Deploy Backend to Droplet
+
+on:
+    push:
+        branches:
+            - main
+        # Only run this workflow if changes are made inside the 'backend' folder
+        paths:
+            - "backend/**"
+
+jobs:
+    deploy:
+        runs-on: self-hosted # Run this job on your droplet
+
+        # This makes all 'run' commands execute inside the 'backend' directory
+        defaults:
+            run:
+                working-directory: ./backend
+
+        steps:
+            - name: ⬇️ Checkout Code
+              uses: actions/checkout@v4
+
+            - name: 🤫 Create .env file
+              # We must explicitly set the working-directory here to be very precise
+              working-directory: ${{ github.workspace }}/backend
+              run: |
+                  echo "NEO4J_URI=${{ secrets.NEO4J_URI }}" > .env
+                  echo "NEO4J_USERNAME=${{ secrets.NEO4J_USERNAME }}" >> .env
+                  echo "NEO4J_PASSWORD=${{ secrets.NEO4J_PASSWORD }}" >> .env
+                  echo "NEO4J_DATABASE=${{ secrets.NEO4J_DATABASE }}" >> .env
+                  echo "AURA_INSTANCEID=${{ secrets.AURA_INSTANCEID }}" >> .env
+                  echo "AURA_INSTANCENAME=${{ secrets.AURA_INSTANCENAME }}" >> .env
+                  echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+                  echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+
+            - name: NODE_ENV check
+              run: |
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                  node -v
+                  npm -v
+
+            - name: 📦 Install Dependencies
+              run: |
+                  # Source nvm for the runner's shell
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                  npm install
+
+            - name: 🏗️ Build Application
+              run: |
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                  npm run build
+
+            - name: ✨ Restart Application with PM2
+              run: |
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                  # This command is idempotent. It will start the app if it's
+                  # not running, or reload it if it is, using the new config.
+                  pm2 startOrRestart ecosystem.config.js

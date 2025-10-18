@@ -23,6 +23,19 @@ let AppController = class AppController {
     getHealth() {
         return this.appService.getHealth();
     }
+    getCorsTest() {
+        return {
+            message: 'CORS is working correctly!',
+            timestamp: new Date().toISOString(),
+            allowedOrigins: [
+                'https://huddleup-protocol.vercel.app',
+                'https://huddleup-protocol-admin.vercel.app',
+                'http://localhost:3000',
+                'http://localhost:3001',
+                'http://localhost:3002'
+            ]
+        };
+    }
 };
 exports.AppController = AppController;
 __decorate([
@@ -37,6 +50,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getHealth", null);
+__decorate([
+    (0, common_1.Get)('cors-test'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getCorsTest", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [app_service_1.AppService])
