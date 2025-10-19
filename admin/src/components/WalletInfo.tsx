@@ -105,7 +105,7 @@ function UserProfileSection({
     connectorName,
     displaySubtitle
 }: {
-    userInfo: any;
+    userInfo: { name?: string; email?: string; profileImage?: string } | null;
     connectorName?: string;
     displaySubtitle: string;
 }) {
@@ -114,6 +114,7 @@ function UserProfileSection({
             <div className="flex items-center space-x-3 mb-3">
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                     {userInfo?.profileImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={userInfo.profileImage}
                             alt="Profile"

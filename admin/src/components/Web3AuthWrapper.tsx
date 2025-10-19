@@ -1,6 +1,6 @@
 'use client';
 
-import { Web3AuthProvider, type Web3AuthContextConfig } from '@web3auth/modal/react';
+import { Web3AuthProvider } from '@web3auth/modal/react';
 import { WagmiProvider } from '@web3auth/modal/react/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import web3AuthConfig from '@/config/web3auth';
