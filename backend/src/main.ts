@@ -63,8 +63,6 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`🚀 HuddleUp Backend running on port ${port}`);
-  console.log(`🌐 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
-  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📚 Swagger documentation available at: http://localhost:${port}/api/docs`);
+  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
 }
 bootstrap();

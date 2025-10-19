@@ -15,6 +15,8 @@ const config_1 = require("@nestjs/config");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const database_module_1 = require("./database/database.module");
+const auth_module_1 = require("./auth/auth.module");
+const users_module_1 = require("./users/users.module");
 const database_config_1 = __importDefault(require("./config/database.config"));
 let AppModule = class AppModule {
 };
@@ -28,6 +30,8 @@ exports.AppModule = AppModule = __decorate([
                 envFilePath: '.env',
             }),
             database_module_1.DatabaseModule,
+            auth_module_1.AuthModule,
+            users_module_1.UsersModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

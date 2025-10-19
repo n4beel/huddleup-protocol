@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useWeb3AuthDisconnect, useWeb3AuthUser } from '@web3auth/modal/react';
+import { useWeb3AuthDisconnect } from '@web3auth/modal/react';
 import { useAccount } from 'wagmi';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WalletInfoProps {
     className?: string;
@@ -18,16 +19,17 @@ interface WalletInfoProps {
 export default function WalletInfo({ className }: WalletInfoProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { disconnect, loading: disconnectLoading } = useWeb3AuthDisconnect();
-    const { userInfo } = useWeb3AuthUser();
     const { address, connector } = useAccount();
+    const { isAuthenticated, user, isLoading, error } = useAuth();
 
-    // Only render if wallet is connected
-    if (!address) {
+
+    // Only show if user has a wallet address and is authenticated with backend
+    if (!address || !isAuthenticated || !user) {
         return null;
     }
 
-    const displayName = userInfo?.name || userInfo?.email || connector?.name || 'Connected';
-    const displaySubtitle = userInfo?.email || 'External Wallet';
+    const displayName = user.firstName || user.email || connector?.name || 'Connected';
+    const displaySubtitle = user.email || 'External Wallet';
     const formattedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
     const handleDisconnect = async () => {
@@ -72,7 +74,7 @@ export default function WalletInfo({ className }: WalletInfoProps) {
                         <div className="p-4">
                             {/* User profile section */}
                             <UserProfileSection
-                                userInfo={userInfo}
+                                user={user}
                                 connectorName={connector?.name}
                                 displaySubtitle={displaySubtitle}
                             />
@@ -101,11 +103,11 @@ export default function WalletInfo({ className }: WalletInfoProps) {
 
 // User profile section component
 function UserProfileSection({
-    userInfo,
+    user,
     connectorName,
     displaySubtitle
 }: {
-    userInfo: { name?: string; email?: string; profileImage?: string } | null;
+    user: { firstName?: string; lastName?: string; email?: string; profileImage?: string } | null;
     connectorName?: string;
     displaySubtitle: string;
 }) {
@@ -113,10 +115,10 @@ function UserProfileSection({
         <div className="border-b border-gray-200 pb-4 mb-4">
             <div className="flex items-center space-x-3 mb-3">
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                    {userInfo?.profileImage ? (
+                    {user?.profileImage ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={userInfo.profileImage}
+                            src={user.profileImage}
                             alt="Profile"
                             className="w-12 h-12 rounded-full object-cover"
                         />
@@ -126,7 +128,7 @@ function UserProfileSection({
                 </div>
                 <div>
                     <div className="font-medium text-gray-900">
-                        {userInfo?.name || connectorName || 'User'}
+                        {user?.firstName || connectorName || 'User'}
                     </div>
                     <div className="text-sm text-gray-500">{displaySubtitle}</div>
                 </div>

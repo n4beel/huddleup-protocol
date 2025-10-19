@@ -2,6 +2,7 @@
 
 import { useWeb3AuthConnect, useWeb3AuthDisconnect } from '@web3auth/modal/react';
 import { useAccount } from 'wagmi';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WalletConnectionProps {
     className?: string;
@@ -19,9 +20,11 @@ export default function WalletConnection({ className, children }: WalletConnecti
     const { connect, isConnected, loading: connectLoading, error: connectError } = useWeb3AuthConnect();
     const { loading: disconnectLoading } = useWeb3AuthDisconnect();
     const { address } = useAccount();
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-    // Show loading state during connection/disconnection
-    if (connectLoading || disconnectLoading) {
+
+    // Show loading state during connection/disconnection or auth verification
+    if (connectLoading || disconnectLoading || authLoading) {
         return (
             <button
                 className={`${className} bg-gray-400 text-white px-6 py-3 rounded-lg font-medium cursor-not-allowed flex items-center space-x-2`}
@@ -33,8 +36,8 @@ export default function WalletConnection({ className, children }: WalletConnecti
         );
     }
 
-    // Hide when wallet is connected (WalletInfo component will show instead)
-    if (isConnected && address) {
+    // Hide when wallet is connected and authenticated (WalletInfo component will show instead)
+    if (isConnected && address && isAuthenticated) {
         return null;
     }
 
