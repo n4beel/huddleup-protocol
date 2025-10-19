@@ -8,7 +8,7 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   --info: #0ea5e9;
-  --background: #f9fafb;
+  --background: #f8f8f8;
   --dark: #001f3e;
   --foreground: #90a1b9;
   --black: black;
@@ -77,4 +77,13 @@ button {
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+.bg-gradient {
+  background: #f67450;
+  background: radial-gradient(
+    circle,
+    rgba(246, 116, 80, 0.27) 60%,
+    rgba(255, 219, 182, 0.31) 100%
+  );
 }

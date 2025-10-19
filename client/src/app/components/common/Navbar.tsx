@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartColumn, History, House, Plus, Wallet2 } from 'lucide-react'
+import { ChartColumn, History, House, User,  } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
@@ -12,7 +12,7 @@ const Navbar = () => {
         { href: '/', label: 'Home', icon: House },
         { href: '/myevents', label: 'My Events', icon: ChartColumn },
         { href: '/history', label: 'Leaderboard', icon: History },
-        { href: '/profile', label: 'Profile', icon: Wallet2 },
+        { href: '/profile', label: 'Profile', icon: User },
     ]
 
     return (

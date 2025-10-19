@@ -36,12 +36,12 @@ export const events = [
 ];
 
 
-const LatestEvents = () => {
+const PastEvents = () => {
     return (
         <div className='w-full h-auto relative'>
             <section className='flex items-center justify-between'>
                 <h4 className='text-lg lg:text-xl font-semibold text-dark'>
-                    Latest Events
+                    Past Events
                 </h4>
                 <Link href='/events/all' className='text-primary text-base'>
                     See More
@@ -49,11 +49,11 @@ const LatestEvents = () => {
             </section>
             <section className='flex flex-col lg:flex-row gap-4 my-6'>
                 {events.map(event => (
-                    <EventCard key={event.id} event={event} />
+                    <EventCard past={true} key={event.id} event={event} />
                 ))}
             </section>
         </div>
     )
 }
 
-export default LatestEvents
+export default PastEvents

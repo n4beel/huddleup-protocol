@@ -1,64 +1,61 @@
 "use client";
+import { Calendar, Clock, MapPin } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
 type Event = {
-  id: number;
-  name: string;
-  cause: string;
-  image: string;
-  location: string;
-  date: string;
-  reward: string;
+    id: number;
+    name: string;
+    cause: string;
+    image: string;
+    location: string;
+    date: string;
+    reward: string;
 };
 
 interface EventCardProps {
-  event: Event;
-  onClick?: (id: number) => void;
+    event: Event;
+    onClick?: (id: number) => void;
+    past?:boolean;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
-  return (
-    <div
-      onClick={() => onClick?.(event.id)}
-      className="w-full p-3 bg-white rounded-xl border border-gray-200 overflow-hidden transition-all cursor-pointer flex gap-3 items-start"
-    >
-      {/* Event Image */}
-      <div className="flex-shrink-0">
-        <Image
-          src={event.image}
-          alt={event.name}
-          width={100}
-          height={100}
-          className="rounded-lg object-cover"
-        />
-      </div>
-
-      {/* Event Info */}
-      <div className="flex flex-col justify-between flex-1">
-        {/* Title + Cause */}
-        <div>
-          <h3 className="text-base font-semibold text-gray-800 line-clamp-1">
-            {event.name}
-          </h3>
-          <p className="text-sm text-gray-500">{event.cause}</p>
+const EventCard: React.FC<EventCardProps> = ({ event, onClick , past=false}) => {
+    let bg = past ? 'bg-gray-200':'bg-white'
+    return (
+        <div
+            onClick={() => onClick?.(event.id)}
+            className={`w-full p-3 ${bg} shadow-xl rounded-lg border border-gray-300 overflow-hidden transition-all cursor-pointert`}
+        >
+            <div className="flex items-start gap-4">
+                <Image
+                    src={event.image}
+                    alt={event.name}
+                    width={100}
+                    height={100}
+                    className="rounded-md object-cover"
+                />
+                <div>
+                    <h6 className="text-base lg:text-lg text-black">{event.name}</h6>
+                    <div className="flex items-center gap-4 mt-1">
+                        <small className="flex items-center gap-2 text-foreground"><Calendar size={15} /> 1 Jan 2025</small>
+                        <small className="flex items-center gap-2 text-foreground"><Clock size={15} /> 7PM</small>
+                    </div>
+                </div>
+            </div>
+            <hr className="border-b border-gray-100 mt-4 mb-2"/>
+            <div className="w-full flex items-center justify-between" >
+                <div className="flex items-center gap-2">
+                    <span className="w-9 h-9 rounded-xl bg-success/20 flex items-center justify-center">
+                        <MapPin size={18} className="text-black" />
+                    </span>
+                    <p className="text-base text-black">{event.location}</p>
+                </div>
+                <div className="p-2 bg-primary rounded-xl">
+                    <p className="text-white text-sm">25 PYUSD</p>
+                </div>
+            </div>
         </div>
-
-        {/* Date + Location */}
-        <div className="text-xs text-gray-600 mt-2 flex flex-col">
-          <span>📍 {event.location}</span>
-          <span>📅 {event.date}</span>
-        </div>
-
-        {/* Reward Badge */}
-        <div className="mt-2">
-          <span className="inline-block text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">
-            💰 {event.reward}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default EventCard;
