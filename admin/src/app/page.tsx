@@ -1,3 +1,5 @@
+import WalletConnection from '@/components/WalletConnection';
+
 export default function Home() {
   return (
     <div className="max-w-4xl mx-auto">
@@ -9,9 +11,9 @@ export default function Home() {
           A decentralized social protocol built for the future of Web3
         </p>
         <div className="flex justify-center space-x-4">
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          <WalletConnection>
             Get Started
-          </button>
+          </WalletConnection>
           <button className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
             Learn More
           </button>
@@ -62,9 +64,9 @@ export default function Home() {
           Join the HuddleUp Protocol and be part of the next generation of decentralized social networking.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          <WalletConnection>
             Connect Your Wallet
-          </button>
+          </WalletConnection>
           <button className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
             View Documentation
           </button>

@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import WalletConnection from './WalletConnection';
+import WalletInfo from './WalletInfo';
 
 const Navigation = () => {
     const pathname = usePathname();
@@ -28,8 +30,8 @@ const Navigation = () => {
                                     key={item.href}
                                     href={item.href}
                                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === item.href
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
                                         }`}
                                 >
                                     {item.label}
@@ -38,9 +40,10 @@ const Navigation = () => {
                         </div>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+                        <WalletConnection className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
                             Connect Wallet
-                        </button>
+                        </WalletConnection>
+                        <WalletInfo />
                     </div>
                 </div>
             </div>
