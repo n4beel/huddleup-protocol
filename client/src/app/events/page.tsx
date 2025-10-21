@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import AppLayout from '../components/common/AppLayout'
 import EventSearch from '../components/Events/EventSearch'
 import TagList from '../components/Events/TagList'
@@ -41,9 +41,13 @@ const EventsExplore = () => {
     return (
         <AppLayout>
             <main className="w-full min-h-screen relative overflow-hidden p-4">
-                <EventSearch />
+                <Suspense>
+                    <EventSearch />
+                </Suspense>
                 <br />
-                <TagList />
+                <Suspense>
+                    <TagList />
+                </Suspense>
                 <br />
                 <section className='grid lg:grid-cols-3 gap-4'>
                     {events.map(event => (

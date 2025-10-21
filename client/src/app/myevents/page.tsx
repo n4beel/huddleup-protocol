@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import AppLayout from '../components/common/AppLayout'
 import MyEventsTabs from '../components/Events/MyEventsTabs'
 import EventCard from '../components/Events/EventCard';
@@ -66,7 +66,9 @@ const MyEvents = () => {
     return (
         <AppLayout>
             <main className="w-full min-h-screen relative overflow-hidden p-4">
-                <MyEventsTabs />
+                <Suspense>
+                    <MyEventsTabs />
+                </Suspense>
                 <section className='grid lg:grid-cols-3 gap-4'>
                     {events.map(event => (
                         <EventCard key={event.id} event={event} />

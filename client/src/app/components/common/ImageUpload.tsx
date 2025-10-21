@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Upload, X } from "lucide-react";
+import Image from "next/image";
 
 interface ImageUploadProps {
   className?: string;
@@ -47,10 +48,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ className = "", onChange }) =
           </div>
         ) : (
           <div className="relative w-full h-full flex items-center justify-center">
-            <img
+            <Image
               src={preview}
               alt="Preview"
               className="object-cover w-full h-full rounded-lg"
+                fill
             />
             <button
               onClick={(e) => {
