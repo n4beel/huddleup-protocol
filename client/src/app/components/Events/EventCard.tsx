@@ -1,6 +1,8 @@
 "use client";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from 'next/navigation'; // For App Router
+
 import React from "react";
 
 type Event = {
@@ -15,16 +17,22 @@ type Event = {
 
 interface EventCardProps {
     event: Event;
-    onClick?: (id: number) => void;
-    past?:boolean;
+    past?: boolean;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event, onClick , past=false}) => {
-    let bg = past ? 'bg-gray-200':'bg-white'
+const EventCard: React.FC<EventCardProps> = ({ event, past = false }) => {
+    const bg = past ? 'bg-gray-200' : 'bg-white'
+    const router = useRouter();
+
+
+    const handleNavigate = () => {
+        router.push('/events/1')
+    }
+
     return (
         <div
-            onClick={() => onClick?.(event.id)}
-            className={`w-full p-3 ${bg} shadow-xl rounded-lg border border-gray-300 overflow-hidden transition-all cursor-pointert`}
+            onClick={handleNavigate}
+            className={`w-full p-3 ${bg} shadow-xl rounded-lg border border-gray-300 overflow-hidden transition-all cursor-pointer`}
         >
             <div className="flex items-start gap-4">
                 <Image
@@ -42,7 +50,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick , past=false}) => 
                     </div>
                 </div>
             </div>
-            <hr className="border-b border-gray-100 mt-4 mb-2"/>
+            <hr className="border-b border-gray-100 mt-4 mb-2" />
             <div className="w-full flex items-center justify-between" >
                 <div className="flex items-center gap-2">
                     <span className="w-9 h-9 rounded-xl bg-success/20 flex items-center justify-center">

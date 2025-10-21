@@ -1,7 +1,8 @@
-import Link from 'next/link'
 import React from 'react'
-import EventCard from './EventCard';
-
+import AppLayout from '../components/common/AppLayout'
+import EventSearch from '../components/Events/EventSearch'
+import TagList from '../components/Events/TagList'
+import EventCard from '../components/Events/EventCard';
 
 
 export const events = [
@@ -36,24 +37,22 @@ export const events = [
 ];
 
 
-const LatestEvents = () => {
+const EventsExplore = () => {
     return (
-        <div className='w-full h-auto relative'>
-            <section className='flex items-center justify-between'>
-                <h4 className='text-lg lg:text-xl font-semibold text-dark'>
-                    Latest Events
-                </h4>
-                <Link href='/events' className='text-primary text-base'>
-                    See More
-                </Link>
-            </section>
-            <section className='flex flex-col lg:flex-row gap-4 my-6'>
-                {events.map(event => (
-                    <EventCard key={event.id} event={event} />
-                ))}
-            </section>
-        </div>
+        <AppLayout>
+            <main className="w-full min-h-screen relative overflow-hidden p-4">
+                <EventSearch />
+                <br />
+                <TagList />
+                <br />
+                <section className='grid lg:grid-cols-3 gap-4'>
+                    {events.map(event => (
+                        <EventCard key={event.id} event={event} />
+                    ))}
+                </section>
+            </main>
+        </AppLayout>
     )
 }
 
-export default LatestEvents
+export default EventsExplore

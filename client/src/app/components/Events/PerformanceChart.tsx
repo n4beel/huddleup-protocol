@@ -42,7 +42,7 @@ const EventPerformanceCard: React.FC<EventPerformanceCardProps> = ({
   const yDomainPad = Math.max(1, Math.round((max - min) * 0.15));
 
   return (
-    <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-4">
+    <div className='w-full bg-white border border-gray-200 shadow-lg rounded-xl p-4 mt-2'>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>

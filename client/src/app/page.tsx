@@ -8,8 +8,10 @@ export default function Home() {
     <AppLayout>
       <main className="w-full min-h-screen relative overflow-hidden p-4">
         <LatestEvents />
+        <br />
+        <br />
         <CTA />
-        <br/>
+        <br />
         <PastEvents />
       </main>
     </AppLayout>

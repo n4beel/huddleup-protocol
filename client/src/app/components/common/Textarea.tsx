@@ -1,30 +1,30 @@
 import React from "react";
 import clsx from "clsx";
 
-interface InputProps {
+interface TextareaProps {
   label?: string;
   value: string;
   onChange: (value: string) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void; // 👈 added
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
-  type?: string;
   error?: string;
   disabled?: boolean;
   className?: string;
-  icon?: React.ReactNode; // 👈 optional icon
-  iconPosition?: "left" | "right"; // 👈 where to place it
+  rows?: number;
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
 }
 
-const Input: React.FC<InputProps> = ({
+const Textarea: React.FC<TextareaProps> = ({
   label,
   value,
   onChange,
-  onKeyDown, // 👈 added
+  onKeyDown,
   placeholder = "",
-  type = "text",
   error,
   disabled = false,
   className = "",
+  rows = 4,
   icon,
   iconPosition = "left",
 }) => {
@@ -37,11 +37,11 @@ const Input: React.FC<InputProps> = ({
       )}
 
       <div className="relative w-full">
-        {/* 👇 Optional Icon */}
+        {/* Optional Icon */}
         {icon && (
           <span
             className={clsx(
-              "absolute top-1/2 -translate-y-1/2 text-gray-500",
+              "absolute top-3 text-gray-500",
               iconPosition === "left" ? "left-3" : "right-3"
             )}
           >
@@ -49,15 +49,15 @@ const Input: React.FC<InputProps> = ({
           </span>
         )}
 
-        <input
-          type={type}
+        <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onKeyDown={onKeyDown} // 👈 added
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           disabled={disabled}
+          rows={rows}
           className={clsx(
-            "w-full h-[50px] rounded-lg border px-3 py-2 text-sm outline-none transition-all duration-200",
+            "w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none transition-all duration-200",
             icon && iconPosition === "left" && "pl-10",
             icon && iconPosition === "right" && "pr-10",
             disabled && "bg-gray-100 cursor-not-allowed opacity-60",
@@ -74,4 +74,4 @@ const Input: React.FC<InputProps> = ({
   );
 };
 
-export default Input;
+export default Textarea;

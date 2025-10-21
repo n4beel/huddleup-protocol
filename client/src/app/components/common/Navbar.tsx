@@ -10,7 +10,7 @@ const Navbar = () => {
 
     const navItems = [
         { href: '/', label: 'Home', icon: House },
-        { href: '/myevents', label: 'My Events', icon: ChartColumn },
+        { href: '/myevents?tab=active', label: 'My Events', icon: ChartColumn },
         { href: '/history', label: 'Leaderboard', icon: History },
         { href: '/profile', label: 'Profile', icon: User },
     ]
