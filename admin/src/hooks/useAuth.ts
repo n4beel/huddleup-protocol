@@ -64,6 +64,7 @@ export function useAuth() {
                 throw new Error('JWT verification failed');
             }
         } catch (error) {
+            console.error('Backend verification failed:', error);
 
             // If verification fails, clear auth state
             setAuthState({

@@ -22,6 +22,14 @@ export default function WalletConnection({ className, children }: WalletConnecti
     const { address } = useAccount();
     const { isAuthenticated, isLoading: authLoading } = useAuth();
 
+    // Handle connection with proper error handling
+    const handleConnect = async () => {
+        try {
+            await connect();
+        } catch (error) {
+            console.error('Connection failed:', error);
+        }
+    };
 
     // Show loading state during connection/disconnection or auth verification
     if (connectLoading || disconnectLoading || authLoading) {
@@ -31,7 +39,8 @@ export default function WalletConnection({ className, children }: WalletConnecti
                 disabled
             >
                 <LoadingSpinner />
-                <span>{connectLoading ? 'Connecting...' : 'Disconnecting...'}</span>
+                {/* <span>{connectLoading ? 'Connecting...' : 'Disconnecting...'}</span> */}
+                <span>Loading...</span>
             </button>
         );
     }
@@ -43,7 +52,7 @@ export default function WalletConnection({ className, children }: WalletConnecti
 
     return (
         <button
-            onClick={() => connect()}
+            onClick={handleConnect}
             disabled={connectLoading}
             className={`${className} bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center space-x-2`}
         >

@@ -4,6 +4,8 @@ import { Web3AuthProvider } from '@web3auth/modal/react';
 import { WagmiProvider } from '@web3auth/modal/react/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import web3AuthConfig from '@/config/web3auth';
+import Web3AuthModalHandler from './Web3AuthModalHandler';
+import ModalCloseButton from './ModalCloseButton';
 import React from 'react';
 
 interface Web3AuthWrapperProps {
@@ -45,6 +47,8 @@ export default function Web3AuthWrapper({ children }: Web3AuthWrapperProps) {
             <Web3AuthProvider config={web3AuthConfig}>
                 <QueryClientProvider client={queryClient}>
                     <WagmiProvider>
+                        <Web3AuthModalHandler />
+                        <ModalCloseButton />
                         {children}
                     </WagmiProvider>
                 </QueryClientProvider>

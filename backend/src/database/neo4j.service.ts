@@ -57,4 +57,14 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
             await session.close();
         }
     }
+
+    async runWriteRelationQuery(query: string, parameters: Record<string, any> = {}, database?: string) {
+        const session = this.getSession(database);
+        try {
+            const result = await session.executeWrite(tx => tx.run(query, parameters));
+            return result.records.map(record => record.toObject());
+        } finally {
+            await session.close();
+        }
+    }
 }

@@ -85,6 +85,8 @@ const web3AuthOptions: Web3AuthOptions = {
         hideWalletDiscovery: false,
     },
     mfaLevel: getMFALevel(),
+    // Add session management
+    sessionTime: 24 * 60 * 60, // 24 hours in seconds
 };
 
 const web3AuthConfig: Web3AuthContextConfig = {

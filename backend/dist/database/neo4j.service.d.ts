@@ -10,4 +10,5 @@ export declare class Neo4jService implements OnModuleInit, OnModuleDestroy {
     getSession(database?: string): Session;
     runQuery(query: string, parameters?: Record<string, any>, database?: string): Promise<import("neo4j-driver").RecordShape[]>;
     runWriteQuery(query: string, parameters?: Record<string, any>, database?: string): Promise<import("neo4j-driver").RecordShape[]>;
+    runWriteRelationQuery(query: string, parameters?: Record<string, any>, database?: string): Promise<import("neo4j-driver").RecordShape[]>;
 }

@@ -67,6 +67,16 @@ let Neo4jService = class Neo4jService {
             await session.close();
         }
     }
+    async runWriteRelationQuery(query, parameters = {}, database) {
+        const session = this.getSession(database);
+        try {
+            const result = await session.executeWrite(tx => tx.run(query, parameters));
+            return result.records.map(record => record.toObject());
+        }
+        finally {
+            await session.close();
+        }
+    }
 };
 exports.Neo4jService = Neo4jService;
 exports.Neo4jService = Neo4jService = __decorate([

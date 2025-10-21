@@ -1,0 +1,73 @@
+/* Web3Auth Modal Overrides */
+
+/* Ensure modal closes properly */
+[data-web3auth-modal] {
+    z-index: 9999 !important;
+}
+
+[data-web3auth-overlay] {
+    z-index: 9998 !important;
+}
+
+[data-web3auth-backdrop] {
+    z-index: 9997 !important;
+}
+
+/* Force close button visibility */
+[data-web3auth-modal] button[aria-label="Close"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure modal can be closed by clicking outside */
+[data-web3auth-overlay] {
+    pointer-events: auto !important;
+}
+
+/* Hide modal when connection is successful */
+.wallet-connected [data-web3auth-modal] {
+    display: none !important;
+}
+
+/* Ensure proper modal positioning */
+[data-web3auth-modal] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    [data-web3auth-modal] {
+        max-width: 95vw !important;
+        max-height: 95vh !important;
+    }
+}
+
+/* Ensure modal content is scrollable */
+[data-web3auth-modal] .modal-content {
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+}
+
+/* Fix for modal not closing */
+.w3a-modal__container {
+    z-index: 9999 !important;
+}
+
+.w3a-modal__overlay {
+    z-index: 9998 !important;
+}
+
+/* Force close on successful connection */
+.wallet-connected .w3a-modal__container {
+    display: none !important;
+}
+
+.wallet-connected .w3a-modal__overlay {
+    display: none !important;
+}

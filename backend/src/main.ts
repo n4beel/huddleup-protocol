@@ -50,6 +50,9 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('health', 'Health check endpoints')
     .addTag('cors', 'CORS testing endpoints')
+    .addTag('auth', 'Authentication endpoints')
+    .addTag('users', 'User management endpoints')
+    .addTag('events', 'Event management and participation endpoints')
     .addBearerAuth()
     .build();
 
