@@ -1,7 +1,11 @@
+
+
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Container from "./components/common/Container";
+import Web3AuthWrapper from "./components/Auth/Web3AuthWrapper";
+
 
 // Load Poppins (for headings)
 const poppins = Poppins({
@@ -45,9 +49,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiased font-body`}>
-        <Container>
-          {children}
-        </Container>
+        <Web3AuthWrapper>
+          <Container>
+            {children}
+          </Container>
+        </Web3AuthWrapper>
       </body>
     </html>
   );

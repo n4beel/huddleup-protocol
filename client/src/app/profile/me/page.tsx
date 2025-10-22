@@ -1,8 +1,8 @@
 import React from 'react'
-import AppLayout from '../components/common/AppLayout'
+import AppLayout from '../../components/common/AppLayout'
 import Image from 'next/image'
-import EventPerformanceCard from '../components/Events/PerformanceChart'
-import ProfileLinks from '../components/Profile/ProfileLinks'
+import EventPerformanceCard from '../../components/Events/PerformanceChart'
+import EventCard from '@/app/components/Events/EventCard';
 
 // My Registered Events
 // 2️⃣ Total Rewards Earned
@@ -18,6 +18,58 @@ const data = [
     { date: "2025-10-11", verified: 18 },
     { date: "2025-10-13", verified: 14 },
 ];
+
+
+export const events = [
+    {
+        id: 1,
+        name: "Beach Cleanup Drive",
+        cause: "Environmental",
+        location: "Santa Monica, CA",
+        date: "2025-11-05",
+        reward: "5 PYUSD",
+        image: "/assets/event.jpeg", // example image
+    },
+    {
+        id: 2,
+        name: "Community Food Distribution",
+        cause: "Hunger Relief",
+        location: "Austin, TX",
+        date: "2025-11-12",
+        reward: "7 PYUSD",
+        image: "/assets/event.jpeg", // example image
+    },
+    {
+        id: 3,
+        name: "Tree Planting Marathon",
+        cause: "Climate Action",
+        location: "Portland, OR",
+        date: "2025-11-20",
+        reward: "6 PYUSD",
+        image: "/assets/event.jpeg", // example image
+    },
+
+    {
+        id: 4,
+        name: "Community Food Distribution",
+        cause: "Hunger Relief",
+        location: "Austin, TX",
+        date: "2025-11-12",
+        reward: "7 PYUSD",
+        image: "/assets/event.jpeg", // example image
+    },
+    {
+        id: 5,
+        name: "Tree Planting Marathon",
+        cause: "Climate Action",
+        location: "Portland, OR",
+        date: "2025-11-20",
+        reward: "6 PYUSD",
+        image: "/assets/event.jpeg", // example image
+    },
+
+];
+
 
 const Profile = () => {
     return (
@@ -35,9 +87,6 @@ const Profile = () => {
                                 </div>
                             </div>
                         </section>
-                        <div className='hidden lg:block h-full'>
-                            <ProfileLinks />
-                        </div>
                     </div>
                     <div className='col-span-12 lg:col-span-8 flex flex-col gap-6'>
                         <section className='w-full grid grid-cols-12 gap-2 lg:gap-4'>
@@ -62,17 +111,18 @@ const Profile = () => {
                                 </h6>
                             </div>
                         </section>
-                        <EventPerformanceCard
-                            title="Event Performance"
-                            subtitle="Mini graph via Envio"
-                            data={data}
-                            unit="participants"
-                        />
                     </div>
                 </div>
-                <div className='block lg:hidden h-full mt-6'>
-                    <ProfileLinks />
-                </div>
+                <section className='flex items-center justify-between mt-6'>
+                    <h4 className='text-lg lg:text-xl font-semibold text-dark'>
+                        Events
+                    </h4>
+                </section>
+                <section className='grid lg:grid-cols-3 gap-4 mt-6'>
+                    {events.map(event => (
+                        <EventCard key={event.id} event={event} />
+                    ))}
+                </section>
             </main>
         </AppLayout>
     )

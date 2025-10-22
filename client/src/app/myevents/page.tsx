@@ -66,9 +66,18 @@ const MyEvents = () => {
     return (
         <AppLayout>
             <main className="w-full min-h-screen relative overflow-hidden p-4">
-                <Suspense>
-                    <MyEventsTabs />
-                </Suspense>
+                <section className='flex items-center justify-between gap-4'>
+                    <Suspense>
+                        <MyEventsTabs />
+                    </Suspense>
+                    <select
+                        className="border-b border-gray-300 focus:outline-none focus:border-primary bg-transparent text-gray-800 text-sm px-0 py-1"
+                    >
+                        <option value="upcoming">Active</option>
+                        <option value="past">Past</option>
+                    </select>
+
+                </section>
                 <section className='grid lg:grid-cols-3 gap-4'>
                     {events.map(event => (
                         <EventCard key={event.id} event={event} />

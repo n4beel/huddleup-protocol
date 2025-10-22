@@ -2,6 +2,7 @@ import AppLayout from "./components/common/AppLayout";
 import CTA from "./components/common/CTA";
 import LatestEvents from "./components/Events/LatestEvents";
 import PastEvents from "./components/Events/PastEvents";
+import ActiveUsers from "./components/Users/ActiveUsers";
 
 export default function Home() {
   return (
@@ -13,6 +14,8 @@ export default function Home() {
         <CTA />
         <br />
         <PastEvents />
+        <br />
+        <ActiveUsers />
       </main>
     </AppLayout>
   );

@@ -11,8 +11,8 @@ const Navbar = () => {
     const navItems = [
         { href: '/', label: 'Home', icon: House },
         { href: '/myevents?tab=active', label: 'My Events', icon: ChartColumn },
-        { href: '/history', label: 'Leaderboard', icon: History },
-        { href: '/profile', label: 'Profile', icon: User },
+        { href: '/leaderboard', label: 'Leaderboard', icon: History },
+        { href: '/profile/me', label: 'Profile', icon: User },
     ]
 
     return (

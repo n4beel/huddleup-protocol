@@ -4,8 +4,8 @@ import Tabs from '../common/Tabs';
 
 
 const tabs = [
-    { id: 'active', title: 'Active' },
-    { id: 'past', title: 'Past' },
+    { id: 'created', title: 'Created' },
+    { id: 'going', title: 'Going' },
 ];
 
 const MyEventsTabs = () => {

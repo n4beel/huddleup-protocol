@@ -1,9 +1,9 @@
 "use client";
-
 import Image from "next/image";
 import React from "react";
 
 const Login = () => {
+
   return (
     <main className="w-full min-h-screen relative overflow-hidden p-4 flex flex-col items-center justify-between">
       {/* Hero Image */}
@@ -49,6 +49,7 @@ const Login = () => {
           />
           Continue with Google
         </button>
+
       </div>
 
       {/* Footer */}
