@@ -119,7 +119,9 @@ export class AuthService {
             profileImage: payload.profileImage,
         };
 
+        console.log(`Creating/updating user for wallet: ${walletAddress}`);
         const user = await this.usersService.createOrUpdateUser(createUserDto);
+        console.log(`Successfully processed user: ${user.id} for wallet: ${walletAddress}`);
 
         return {
             id: user.id,

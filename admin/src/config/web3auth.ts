@@ -50,7 +50,7 @@ function getMFALevel() {
             return MFA_LEVELS.NONE;
         case 'MANDATORY':
         default:
-            return MFA_LEVELS.MANDATORY;
+            return MFA_LEVELS.OPTIONAL;
     }
 }
 

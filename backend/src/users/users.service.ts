@@ -8,9 +8,37 @@ export class UsersService {
     constructor(private readonly neo4jService: Neo4jService) { }
 
     /**
+     * Clean up duplicate users (keep the most recent one)
+     */
+    async cleanupDuplicateUsers(): Promise<void> {
+        try {
+            const query = `
+                MATCH (u:User)
+                WITH u.walletAddress as walletAddress, collect(u) as users
+                WHERE size(users) > 1
+                WITH walletAddress, users, max(users.createdAt) as latestCreatedAt
+                UNWIND users as user
+                WITH walletAddress, user, latestCreatedAt
+                WHERE user.createdAt < latestCreatedAt
+                DELETE user
+            `;
+            await this.neo4jService.runWriteQuery(query, {});
+            console.log('Duplicate users cleaned up successfully');
+        } catch (error) {
+            console.log('Error cleaning up duplicate users:', error);
+        }
+    }
+
+    /**
      * Create a new user
      */
     async createUser(createUserDto: CreateUserDto): Promise<User> {
+        // Check if user with this wallet address already exists
+        const existingUser = await this.findByWalletAddress(createUserDto.walletAddress);
+        if (existingUser) {
+            throw new Error(`User with wallet address ${createUserDto.walletAddress} already exists`);
+        }
+
         const userId = uuidv4();
         const now = new Date();
 
@@ -162,22 +190,51 @@ export class UsersService {
      * Create or update user (upsert)
      */
     async createOrUpdateUser(createUserDto: CreateUserDto): Promise<User> {
-        const existingUser = await this.findByWalletAddress(createUserDto.walletAddress);
+        const walletAddress = createUserDto.walletAddress.toLowerCase();
 
-        if (existingUser) {
-            // Update existing user
-            const updateDto: UpdateUserDto = {
-                firstName: createUserDto.firstName,
-                lastName: createUserDto.lastName,
-                email: createUserDto.email,
-                profileImage: createUserDto.profileImage,
-                lastLoginAt: new Date(),
-            };
+        try {
+            // Try to find existing user first
+            const existingUser = await this.findByWalletAddress(walletAddress);
 
-            return this.updateUser(existingUser.id, updateDto);
-        } else {
-            // Create new user
-            return this.createUser(createUserDto);
+            if (existingUser) {
+                // Update existing user
+                console.log(`Updating existing user with wallet: ${walletAddress}`);
+                const updateDto: UpdateUserDto = {
+                    firstName: createUserDto.firstName,
+                    lastName: createUserDto.lastName,
+                    email: createUserDto.email,
+                    profileImage: createUserDto.profileImage,
+                    lastLoginAt: new Date(),
+                };
+
+                return this.updateUser(existingUser.id, updateDto);
+            } else {
+                // Create new user
+                console.log(`Creating new user with wallet: ${walletAddress}`);
+                return this.createUser(createUserDto);
+            }
+        } catch (error) {
+            // If creation failed due to unique constraint violation, try to find and update the user
+            if (error instanceof Error && (
+                error.message.includes('already exists') ||
+                error.message.includes('unique constraint') ||
+                error.message.includes('duplicate key')
+            )) {
+                console.log(`User already exists (constraint violation), attempting to update: ${walletAddress}`);
+                const existingUser = await this.findByWalletAddress(walletAddress);
+                if (existingUser) {
+                    const updateDto: UpdateUserDto = {
+                        firstName: createUserDto.firstName,
+                        lastName: createUserDto.lastName,
+                        email: createUserDto.email,
+                        profileImage: createUserDto.profileImage,
+                        lastLoginAt: new Date(),
+                    };
+                    return this.updateUser(existingUser.id, updateDto);
+                }
+            }
+            console.error(`Error creating/updating user for wallet ${walletAddress}:`, error);
+            throw error;
         }
     }
 

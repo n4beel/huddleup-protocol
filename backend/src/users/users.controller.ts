@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
@@ -48,5 +48,16 @@ export class UsersController {
         }
 
         return user;
+    }
+
+    @Post('cleanup-duplicates')
+    @ApiOperation({ summary: 'Clean up duplicate users (keep most recent)' })
+    @ApiResponse({
+        status: 200,
+        description: 'Duplicate users cleaned up successfully'
+    })
+    async cleanupDuplicates(): Promise<{ message: string }> {
+        await this.usersService.cleanupDuplicateUsers();
+        return { message: 'Duplicate users cleaned up successfully' };
     }
 }

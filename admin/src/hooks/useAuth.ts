@@ -48,12 +48,20 @@ export function useAuth() {
             return;
         }
 
+        // Prevent multiple simultaneous calls
+        if (authState.isLoading) {
+            console.log('Already verifying, skipping duplicate call');
+            return;
+        }
+
+        console.log('Starting backend verification for address:', address);
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
         try {
             const response = await authService.verifyJWT(idToken);
 
             if (response.success) {
+                console.log('Backend verification successful');
                 setAuthState({
                     isAuthenticated: true,
                     isLoading: false,
@@ -80,7 +88,7 @@ export function useAuth() {
                 window.location.reload(); // Simple approach for now
             }
         }
-    }, [idToken, address]);
+    }, [idToken, address, authState.isLoading]);
 
     /**
      * Refresh user session
@@ -150,20 +158,28 @@ export function useAuth() {
 
     // Effect to verify with backend when wallet connects
     useEffect(() => {
+        // Prevent multiple simultaneous calls
+        if (authState.isLoading) {
+            return;
+        }
 
         if (address && !idToken && getIdentityToken) {
             // If we have an address but no token, try to get the token
+            console.log('Getting identity token for address:', address);
 
             // Add a timeout to wait for the token
             const timeoutId = setTimeout(() => {
+                console.log('Timeout reached, authenticating external wallet');
                 authenticateExternalWallet(address);
             }, 3000); // Wait 3 seconds for the token
 
             getIdentityToken().then((token) => {
                 clearTimeout(timeoutId);
                 if (token) {
+                    console.log('Got identity token, verifying with backend');
                     verifyWithBackend();
                 } else {
+                    console.log('No identity token, authenticating external wallet');
                     authenticateExternalWallet(address);
                 }
             }).catch((error) => {
@@ -173,12 +189,15 @@ export function useAuth() {
             });
         } else if (idToken && address) {
             // For external wallets, web3AuthUserInfo might be null, so we only require idToken and address
+            console.log('Have both token and address, verifying with backend');
             verifyWithBackend();
         } else if (address && !idToken) {
             // For external wallets without JWT, try to authenticate with just the wallet address
+            console.log('Have address but no token, authenticating external wallet');
             authenticateExternalWallet(address);
         } else {
             // Clear auth state when wallet disconnects
+            console.log('No address or token, clearing auth state');
             setAuthState({
                 isAuthenticated: false,
                 isLoading: false,
@@ -186,7 +205,7 @@ export function useAuth() {
                 error: null,
             });
         }
-    }, [idToken, address, getIdentityToken, verifyWithBackend, authenticateExternalWallet]);
+    }, [idToken, address]); // Removed function dependencies to prevent multiple calls
 
     // Effect to refresh session periodically
     useEffect(() => {
