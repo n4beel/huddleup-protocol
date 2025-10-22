@@ -572,11 +572,27 @@ export class EventsService {
     async getEventParticipants(eventId: string): Promise<any[]> {
         const query = `
             MATCH (u:User)-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
-            RETURN u.id as userId, u.firstName, u.lastName, u.email, r.joinedAt as joinedAt, r.qrCodeUrl as qrCodeUrl
+            RETURN u.id as userId, u.walletAddress as walletAddress, u.connectionMethod as connectionMethod, u.firstName as firstName, u.lastName as lastName, u.email as email, u.profileImage as profileImage, u.createdAt as createdAt, u.lastLoginAt as lastLoginAt, u.isActive as isActive, r.joinedAt as joinedAt, r.qrCodeUrl as qrCodeUrl
             ORDER BY r.joinedAt DESC
         `;
 
-        return await this.neo4jService.runQuery(query, { eventId });
+        const result = await this.neo4jService.runQuery(query, { eventId });
+
+        // Convert datetime objects to proper Date objects and include full user details
+        return result.map(record => ({
+            userId: record.userId,
+            walletAddress: record.walletAddress,
+            connectionMethod: record.connectionMethod,
+            firstName: record.firstName,
+            lastName: record.lastName,
+            email: record.email,
+            profileImage: record.profileImage,
+            createdAt: this.convertNeo4jDateTime(record.createdAt),
+            lastLoginAt: this.convertNeo4jDateTime(record.lastLoginAt),
+            isActive: record.isActive,
+            joinedAt: this.convertNeo4jDateTime(record.joinedAt),
+            qrCodeUrl: record.qrCodeUrl
+        }));
     }
 
     /**
@@ -585,39 +601,88 @@ export class EventsService {
     async getEventSponsor(eventId: string): Promise<any | null> {
         const query = `
             MATCH (u:User)-[r:SPONSOR_OF]->(e:Event {id: $eventId})
-            RETURN u.id as sponsorId, u.firstName, u.lastName, u.email, r.amount, r.fundedAt
+            RETURN u.id as sponsorId, u.walletAddress as walletAddress, u.connectionMethod as connectionMethod, u.firstName as firstName, u.lastName as lastName, u.email as email, u.profileImage as profileImage, u.createdAt as createdAt, u.lastLoginAt as lastLoginAt, u.isActive as isActive, r.amount as amount, r.fundedAt as fundedAt
         `;
 
         const result = await this.neo4jService.runQuery(query, { eventId });
-        return result.length > 0 ? result[0] : null;
+
+        if (result.length === 0) return null;
+
+        const record = result[0];
+        return {
+            sponsorId: record.sponsorId,
+            walletAddress: record.walletAddress,
+            connectionMethod: record.connectionMethod,
+            firstName: record.firstName,
+            lastName: record.lastName,
+            email: record.email,
+            profileImage: record.profileImage,
+            createdAt: this.convertNeo4jDateTime(record.createdAt),
+            lastLoginAt: this.convertNeo4jDateTime(record.lastLoginAt),
+            isActive: record.isActive,
+            amount: this.convertNeo4jInteger(record.amount),
+            fundedAt: this.convertNeo4jDateTime(record.fundedAt)
+        };
     }
 
     /**
      * Map Neo4j node to Event entity
      */
+    /**
+     * Convert Neo4j integer to JavaScript number
+     */
+    private convertNeo4jInteger(value: any): number {
+        if (value === null || value === undefined) return 0;
+        if (typeof value === 'number') return value;
+        if (typeof value === 'object' && value.low !== undefined) {
+            return value.low;
+        }
+        return parseInt(value) || 0;
+    }
+
+    /**
+     * Convert Neo4j datetime to JavaScript Date
+     */
+    private convertNeo4jDateTime(value: any): Date | undefined {
+        if (!value) return undefined;
+        if (value instanceof Date) return value;
+        if (typeof value === 'string') return new Date(value);
+        if (typeof value === 'object' && value.year) {
+            // Neo4j datetime object
+            const year = this.convertNeo4jInteger(value.year);
+            const month = this.convertNeo4jInteger(value.month) - 1; // JavaScript months are 0-based
+            const day = this.convertNeo4jInteger(value.day);
+            const hour = this.convertNeo4jInteger(value.hour);
+            const minute = this.convertNeo4jInteger(value.minute);
+            const second = this.convertNeo4jInteger(value.second);
+            return new Date(year, month, day, hour, minute, second);
+        }
+        return new Date(value);
+    }
+
     private mapNeo4jNodeToEvent(node: any): Event {
         return {
             id: node.properties.id,
             title: node.properties.title,
             description: node.properties.description,
-            eventDate: new Date(node.properties.eventDate),
+            eventDate: this.convertNeo4jDateTime(node.properties.eventDate) || new Date(),
             location: node.properties.location,
             eventType: node.properties.eventType,
             status: node.properties.status,
             bannerImage: node.properties.bannerImage,
             organizerId: node.properties.organizerId,
-            fundingRequired: node.properties.fundingRequired,
-            airdropAmount: node.properties.airdropAmount,
-            maxParticipants: node.properties.maxParticipants,
-            currentParticipants: node.properties.currentParticipants || 0,
-            currentFunding: node.properties.currentFunding || 0,
-            createdAt: new Date(node.properties.createdAt),
-            updatedAt: new Date(node.properties.updatedAt),
-            fundedAt: node.properties.fundedAt ? new Date(node.properties.fundedAt) : undefined,
-            completedAt: node.properties.completedAt ? new Date(node.properties.completedAt) : undefined,
+            fundingRequired: this.convertNeo4jInteger(node.properties.fundingRequired),
+            airdropAmount: this.convertNeo4jInteger(node.properties.airdropAmount),
+            maxParticipants: this.convertNeo4jInteger(node.properties.maxParticipants),
+            currentParticipants: this.convertNeo4jInteger(node.properties.currentParticipants),
+            currentFunding: this.convertNeo4jInteger(node.properties.currentFunding),
+            createdAt: this.convertNeo4jDateTime(node.properties.createdAt) || new Date(),
+            updatedAt: this.convertNeo4jDateTime(node.properties.updatedAt) || new Date(),
+            fundedAt: this.convertNeo4jDateTime(node.properties.fundedAt),
+            completedAt: this.convertNeo4jDateTime(node.properties.completedAt),
             sponsorId: node.properties.sponsorId,
-            sponsorAmount: node.properties.sponsorAmount,
-            sponsorFundedAt: node.properties.sponsorFundedAt ? new Date(node.properties.sponsorFundedAt) : undefined,
+            sponsorAmount: this.convertNeo4jInteger(node.properties.sponsorAmount),
+            sponsorFundedAt: this.convertNeo4jDateTime(node.properties.sponsorFundedAt),
         };
     }
 

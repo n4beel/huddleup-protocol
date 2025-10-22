@@ -241,6 +241,38 @@ export class UsersService {
     /**
      * Map Neo4j node to User entity
      */
+    /**
+     * Convert Neo4j integer to JavaScript number
+     */
+    private convertNeo4jInteger(value: any): number {
+        if (value === null || value === undefined) return 0;
+        if (typeof value === 'number') return value;
+        if (typeof value === 'object' && value.low !== undefined) {
+            return value.low;
+        }
+        return parseInt(value) || 0;
+    }
+
+    /**
+     * Convert Neo4j datetime to JavaScript Date
+     */
+    private convertNeo4jDateTime(value: any): Date | undefined {
+        if (!value) return undefined;
+        if (value instanceof Date) return value;
+        if (typeof value === 'string') return new Date(value);
+        if (typeof value === 'object' && value.year) {
+            // Neo4j datetime object
+            const year = this.convertNeo4jInteger(value.year);
+            const month = this.convertNeo4jInteger(value.month) - 1; // JavaScript months are 0-based
+            const day = this.convertNeo4jInteger(value.day);
+            const hour = this.convertNeo4jInteger(value.hour);
+            const minute = this.convertNeo4jInteger(value.minute);
+            const second = this.convertNeo4jInteger(value.second);
+            return new Date(year, month, day, hour, minute, second);
+        }
+        return new Date(value);
+    }
+
     private mapNeo4jNodeToUser(node: any): User {
         return {
             id: node.properties.id,
@@ -250,8 +282,8 @@ export class UsersService {
             lastName: node.properties.lastName,
             email: node.properties.email,
             profileImage: node.properties.profileImage,
-            createdAt: new Date(node.properties.createdAt),
-            lastLoginAt: new Date(node.properties.lastLoginAt),
+            createdAt: this.convertNeo4jDateTime(node.properties.createdAt) || new Date(),
+            lastLoginAt: this.convertNeo4jDateTime(node.properties.lastLoginAt) || new Date(),
             isActive: node.properties.isActive,
         };
     }
