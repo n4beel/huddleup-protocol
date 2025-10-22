@@ -35,4 +35,13 @@ export class CreateEventDto {
     @IsNumber()
     @Min(0)
     airdropAmount: number;
+
+    @ApiProperty({
+        description: 'Optional banner image URL (Cloudinary URL)',
+        required: false,
+        example: 'https://res.cloudinary.com/your-cloud/image/upload/v1234567890/huddleup-protocol/banner.jpg'
+    })
+    @IsString()
+    @IsOptional()
+    bannerImage?: string;
 }

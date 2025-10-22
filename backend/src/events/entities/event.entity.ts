@@ -6,6 +6,7 @@ export class Event {
     location: string;
     eventType: string;
     status: 'draft' | 'funded' | 'completed' | 'cancelled';
+    bannerImage?: string; // Cloudinary URL for event banner
 
     // Organizer fields
     organizerId: string;
@@ -37,6 +38,7 @@ export interface CreateEventDto {
     eventType: string;
     fundingRequired: number;
     airdropAmount: number;
+    bannerImage?: string; // Optional Cloudinary URL for event banner
 }
 
 export interface UpdateEventDto {
@@ -48,6 +50,7 @@ export interface UpdateEventDto {
     fundingRequired?: number;
     airdropAmount?: number;
     status?: 'draft' | 'funded' | 'completed' | 'cancelled';
+    bannerImage?: string; // Optional Cloudinary URL for event banner
 }
 
 export interface EventParticipationDto {

@@ -53,6 +53,7 @@ export class EventsService {
             fundingRequired: createEventDto.fundingRequired,
             airdropAmount: createEventDto.airdropAmount,
             maxParticipants,
+            bannerImage: createEventDto.bannerImage || null,
             createdAt: now.toISOString(),
             updatedAt: now.toISOString(),
         };
@@ -73,6 +74,7 @@ export class EventsService {
                 maxParticipants: $maxParticipants,
                 currentParticipants: 0,
                 currentFunding: 0,
+                bannerImage: $bannerImage,
                 createdAt: datetime($createdAt),
                 updatedAt: datetime($updatedAt)
              })
@@ -220,6 +222,10 @@ export class EventsService {
         if (updateEventDto.status !== undefined) {
             setClauses.push('e.status = $status');
             parameters.status = updateEventDto.status;
+        }
+        if (updateEventDto.bannerImage !== undefined) {
+            setClauses.push('e.bannerImage = $bannerImage');
+            parameters.bannerImage = updateEventDto.bannerImage;
         }
 
         // Recalculate max participants if funding or airdrop changed
@@ -449,6 +455,7 @@ export class EventsService {
             location: node.properties.location,
             eventType: node.properties.eventType,
             status: node.properties.status,
+            bannerImage: node.properties.bannerImage,
             organizerId: node.properties.organizerId,
             fundingRequired: node.properties.fundingRequired,
             airdropAmount: node.properties.airdropAmount,

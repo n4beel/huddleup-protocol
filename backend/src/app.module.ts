@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
+import { UploadModule } from './upload/upload.module';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -19,6 +20,7 @@ import databaseConfig from './config/database.config';
     AuthModule,
     UsersModule,
     EventsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

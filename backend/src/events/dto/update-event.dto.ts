@@ -43,4 +43,13 @@ export class UpdateEventDto {
     @IsOptional()
     @IsString()
     status?: 'draft' | 'funded' | 'completed' | 'cancelled';
+
+    @ApiProperty({
+        description: 'Optional banner image URL (Cloudinary URL)',
+        required: false,
+        example: 'https://res.cloudinary.com/your-cloud/image/upload/v1234567890/huddleup-protocol/banner.jpg'
+    })
+    @IsOptional()
+    @IsString()
+    bannerImage?: string;
 }

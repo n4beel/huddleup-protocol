@@ -18,6 +18,7 @@ const database_module_1 = require("./database/database.module");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const events_module_1 = require("./events/events.module");
+const upload_module_1 = require("./upload/upload.module");
 const database_config_1 = __importDefault(require("./config/database.config"));
 let AppModule = class AppModule {
 };
@@ -34,6 +35,7 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             events_module_1.EventsModule,
+            upload_module_1.UploadModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

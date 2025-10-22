@@ -32,12 +32,18 @@ A NestJS backend application with Neo4j database integration for social features
 
    Update the following variables in `.env`:
    ```
+   # Database Configuration
    NEO4J_URI=neo4j+s://1bcad8f7.databases.neo4j.io
    NEO4J_USERNAME=your-username
    NEO4J_PASSWORD=your-password
    NEO4J_DATABASE=neo4j
    AURA_INSTANCEID=your-instance-id
    AURA_INSTANCENAME=your-instance-name
+   
+   # Cloudinary Configuration
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
    ```
 
 3. **Start the development server:**
@@ -53,6 +59,10 @@ The server will start on `http://localhost:3000`
 - `GET /health` - Health check (includes database connection status)
 - `GET /cors-test` - Test CORS configuration
 - `GET /api/docs` - Swagger API documentation (interactive)
+
+### Upload Endpoints
+- `POST /upload/images` - Upload multiple images to Cloudinary (requires JWT authentication)
+- `DELETE /upload/image` - Delete an image from Cloudinary (requires JWT authentication)
 
 ## Project Structure
 
