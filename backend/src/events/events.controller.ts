@@ -50,34 +50,60 @@ export class EventsController {
 
     @Get()
     @ApiOperation({ summary: 'Get all events with optional filtering' })
-    @ApiQuery({ name: 'status', required: false, description: 'Filter by event status' })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by event status (draft, funded, completed, cancelled)' })
+    @ApiQuery({ name: 'isActive', required: false, description: 'Filter by event date: true for future events (including today), false for past events' })
     @ApiResponse({ status: 200, description: 'Events retrieved successfully', type: [Event] })
-    async findAll(@Query('status') status?: string): Promise<Event[]> {
-        return this.eventsService.findAll(status);
+    async findAll(
+        @Query('status') status?: string,
+        @Query('isActive') isActive?: string
+    ): Promise<Event[]> {
+        const isActiveBoolean = isActive === undefined ? undefined : isActive === 'true';
+        return this.eventsService.findAll(status, isActiveBoolean);
     }
 
     @Get('organized-by/:userId')
     @ApiOperation({ summary: 'Get events organized by a specific user' })
     @ApiParam({ name: 'userId', description: 'User ID' })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by event status (draft, funded, completed, cancelled)' })
+    @ApiQuery({ name: 'isActive', required: false, description: 'Filter by event date: true for future events (including today), false for past events' })
     @ApiResponse({ status: 200, description: 'Events retrieved successfully', type: [Event] })
-    async findOrganizedByUser(@Param('userId') userId: string): Promise<Event[]> {
-        return this.eventsService.findOrganizedByUser(userId);
+    async findOrganizedByUser(
+        @Param('userId') userId: string,
+        @Query('status') status?: string,
+        @Query('isActive') isActive?: string
+    ): Promise<Event[]> {
+        const isActiveBoolean = isActive === undefined ? undefined : isActive === 'true';
+        return this.eventsService.findOrganizedByUser(userId, status, isActiveBoolean);
     }
 
     @Get('sponsored-by/:userId')
     @ApiOperation({ summary: 'Get events sponsored by a specific user' })
     @ApiParam({ name: 'userId', description: 'User ID' })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by event status (draft, funded, completed, cancelled)' })
+    @ApiQuery({ name: 'isActive', required: false, description: 'Filter by event date: true for future events (including today), false for past events' })
     @ApiResponse({ status: 200, description: 'Events retrieved successfully', type: [Event] })
-    async findSponsoredByUser(@Param('userId') userId: string): Promise<Event[]> {
-        return this.eventsService.findSponsoredByUser(userId);
+    async findSponsoredByUser(
+        @Param('userId') userId: string,
+        @Query('status') status?: string,
+        @Query('isActive') isActive?: string
+    ): Promise<Event[]> {
+        const isActiveBoolean = isActive === undefined ? undefined : isActive === 'true';
+        return this.eventsService.findSponsoredByUser(userId, status, isActiveBoolean);
     }
 
     @Get('participating/:userId')
     @ApiOperation({ summary: 'Get events a user is participating in' })
     @ApiParam({ name: 'userId', description: 'User ID' })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by event status (draft, funded, completed, cancelled)' })
+    @ApiQuery({ name: 'isActive', required: false, description: 'Filter by event date: true for future events (including today), false for past events' })
     @ApiResponse({ status: 200, description: 'Events retrieved successfully', type: [Event] })
-    async findParticipatingByUser(@Param('userId') userId: string): Promise<Event[]> {
-        return this.eventsService.findParticipatingByUser(userId);
+    async findParticipatingByUser(
+        @Param('userId') userId: string,
+        @Query('status') status?: string,
+        @Query('isActive') isActive?: string
+    ): Promise<Event[]> {
+        const isActiveBoolean = isActive === undefined ? undefined : isActive === 'true';
+        return this.eventsService.findParticipatingByUser(userId, status, isActiveBoolean);
     }
 
     @Get(':id')

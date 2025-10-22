@@ -96,16 +96,32 @@ export class EventsService {
     /**
      * Get all events with optional filtering
      */
-    async findAll(status?: string, userId?: string): Promise<Event[]> {
+    async findAll(status?: string, isActive?: boolean, userId?: string): Promise<Event[]> {
         let query = `
             MATCH (e:Event)
         `;
 
         const parameters: any = {};
+        const conditions: string[] = [];
 
         if (status) {
-            query += ` WHERE e.status = $status`;
+            conditions.push(`e.status = $status`);
             parameters.status = status;
+        }
+
+        if (isActive !== undefined) {
+            if (isActive) {
+                // Active events: eventDate >= today (including today)
+                conditions.push(`e.eventDate >= datetime($now)`);
+            } else {
+                // Inactive events: eventDate < today
+                conditions.push(`e.eventDate < datetime($now)`);
+            }
+            parameters.now = new Date().toISOString();
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
         }
 
         query += ` RETURN e ORDER BY e.createdAt DESC`;
@@ -117,42 +133,111 @@ export class EventsService {
     /**
      * Get events organized by a user
      */
-    async findOrganizedByUser(userId: string): Promise<Event[]> {
-        const query = `
+    async findOrganizedByUser(userId: string, status?: string, isActive?: boolean): Promise<Event[]> {
+        let query = `
             MATCH (u:User {id: $userId})-[:ORGANIZER_OF]->(e:Event)
-            RETURN e
-            ORDER BY e.createdAt DESC
         `;
 
-        const result = await this.neo4jService.runQuery(query, { userId });
+        const parameters: any = { userId };
+        const conditions: string[] = [];
+
+        if (status) {
+            conditions.push(`e.status = $status`);
+            parameters.status = status;
+        }
+
+        if (isActive !== undefined) {
+            if (isActive) {
+                // Active events: eventDate >= today (including today)
+                conditions.push(`e.eventDate >= datetime($now)`);
+            } else {
+                // Inactive events: eventDate < today
+                conditions.push(`e.eventDate < datetime($now)`);
+            }
+            parameters.now = new Date().toISOString();
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
+        }
+
+        query += ` RETURN e ORDER BY e.createdAt DESC`;
+
+        const result = await this.neo4jService.runQuery(query, parameters);
         return result.map(record => this.mapNeo4jNodeToEvent(record.e));
     }
 
     /**
      * Get events sponsored by a user
      */
-    async findSponsoredByUser(userId: string): Promise<Event[]> {
-        const query = `
+    async findSponsoredByUser(userId: string, status?: string, isActive?: boolean): Promise<Event[]> {
+        let query = `
             MATCH (u:User {id: $userId})-[:SPONSOR_OF]->(e:Event)
-            RETURN e
-            ORDER BY e.createdAt DESC
         `;
 
-        const result = await this.neo4jService.runQuery(query, { userId });
+        const parameters: any = { userId };
+        const conditions: string[] = [];
+
+        if (status) {
+            conditions.push(`e.status = $status`);
+            parameters.status = status;
+        }
+
+        if (isActive !== undefined) {
+            if (isActive) {
+                // Active events: eventDate >= today (including today)
+                conditions.push(`e.eventDate >= datetime($now)`);
+            } else {
+                // Inactive events: eventDate < today
+                conditions.push(`e.eventDate < datetime($now)`);
+            }
+            parameters.now = new Date().toISOString();
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
+        }
+
+        query += ` RETURN e ORDER BY e.createdAt DESC`;
+
+        const result = await this.neo4jService.runQuery(query, parameters);
         return result.map(record => this.mapNeo4jNodeToEvent(record.e));
     }
 
     /**
      * Get events a user is participating in
      */
-    async findParticipatingByUser(userId: string): Promise<Event[]> {
-        const query = `
+    async findParticipatingByUser(userId: string, status?: string, isActive?: boolean): Promise<Event[]> {
+        let query = `
             MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event)
-            RETURN e, r.qrCodeUrl as qrCodeUrl
-            ORDER BY e.createdAt DESC
         `;
 
-        const result = await this.neo4jService.runQuery(query, { userId });
+        const parameters: any = { userId };
+        const conditions: string[] = [];
+
+        if (status) {
+            conditions.push(`e.status = $status`);
+            parameters.status = status;
+        }
+
+        if (isActive !== undefined) {
+            if (isActive) {
+                // Active events: eventDate >= today (including today)
+                conditions.push(`e.eventDate >= datetime($now)`);
+            } else {
+                // Inactive events: eventDate < today
+                conditions.push(`e.eventDate < datetime($now)`);
+            }
+            parameters.now = new Date().toISOString();
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
+        }
+
+        query += ` RETURN e, r.qrCodeUrl as qrCodeUrl ORDER BY e.createdAt DESC`;
+
+        const result = await this.neo4jService.runQuery(query, parameters);
         return result.map(record => {
             const event = this.mapNeo4jNodeToEvent(record.e);
             // Add QR code URL to the event object
