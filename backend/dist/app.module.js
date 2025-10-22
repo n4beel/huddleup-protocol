@@ -19,6 +19,8 @@ const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const events_module_1 = require("./events/events.module");
 const upload_module_1 = require("./upload/upload.module");
+const qr_module_1 = require("./qr/qr.module");
+const qr_controller_1 = require("./qr/qr.controller");
 const database_config_1 = __importDefault(require("./config/database.config"));
 let AppModule = class AppModule {
 };
@@ -36,8 +38,9 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
             events_module_1.EventsModule,
             upload_module_1.UploadModule,
+            qr_module_1.QrModule,
         ],
-        controllers: [app_controller_1.AppController],
+        controllers: [app_controller_1.AppController, qr_controller_1.QrController],
         providers: [app_service_1.AppService],
     })
 ], AppModule);

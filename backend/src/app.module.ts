@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { UploadModule } from './upload/upload.module';
+import { QrModule } from './qr/qr.module';
+import { QrController } from './qr/qr.controller';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -21,8 +23,9 @@ import databaseConfig from './config/database.config';
     UsersModule,
     EventsModule,
     UploadModule,
+    QrModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, QrController],
   providers: [AppService],
 })
 export class AppModule { }

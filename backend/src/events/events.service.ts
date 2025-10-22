@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Neo4jService } from '../database/neo4j.service';
 import { Event, CreateEventDto, UpdateEventDto, FundEventDto } from './entities/event.entity';
+import { QrService } from '../qr/qr.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class EventsService {
-    constructor(private readonly neo4jService: Neo4jService) { }
+    constructor(
+        private readonly neo4jService: Neo4jService,
+        private readonly qrService: QrService
+    ) { }
 
     /**
      * Create a new event
@@ -143,13 +147,18 @@ export class EventsService {
      */
     async findParticipatingByUser(userId: string): Promise<Event[]> {
         const query = `
-            MATCH (u:User {id: $userId})-[:PARTICIPANT_OF {isActive: true}]->(e:Event)
-            RETURN e
+            MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event)
+            RETURN e, r.qrCodeUrl as qrCodeUrl
             ORDER BY e.createdAt DESC
         `;
 
         const result = await this.neo4jService.runQuery(query, { userId });
-        return result.map(record => this.mapNeo4jNodeToEvent(record.e));
+        return result.map(record => {
+            const event = this.mapNeo4jNodeToEvent(record.e);
+            // Add QR code URL to the event object
+            (event as any).qrCodeUrl = record.qrCodeUrl;
+            return event;
+        });
     }
 
     /**
@@ -306,31 +315,74 @@ export class EventsService {
             throw new BadRequestException('Event is full');
         }
 
-        // Check if user is already participating
-        const existingParticipation = await this.neo4jService.runQuery(
+        // Check if user is already actively participating
+        const activeParticipation = await this.neo4jService.runQuery(
             `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
              RETURN r`,
             { userId, eventId }
         );
 
-        if (existingParticipation.length > 0) {
+        if (activeParticipation.length > 0) {
             throw new BadRequestException('User is already participating in this event');
         }
 
-        // Create participation relationship and update event
-        await this.neo4jService.runWriteRelationQuery(
-            `MATCH (u:User {id: $userId}), (e:Event {id: $eventId})
-             CREATE (u)-[:PARTICIPANT_OF {joinedAt: datetime($joinedAt), isActive: true}]->(e)
-             SET e.currentParticipants = e.currentParticipants + 1
-             SET e.updatedAt = datetime($updatedAt)
-             RETURN e`,
-            {
-                userId,
-                eventId,
-                joinedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            }
+        // Check if user has a previous (inactive) participation relationship
+        const previousParticipation = await this.neo4jService.runQuery(
+            `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: false}]->(e:Event {id: $eventId})
+             RETURN r
+             ORDER BY r.joinedAt DESC
+             LIMIT 1`,
+            { userId, eventId }
         );
+
+        // Generate QR code for participation verification
+        console.log(`Generating QR code for user ${userId} participating in event ${eventId}`);
+        const qrCodeUrl = await this.qrService.generateParticipationQR(userId, eventId);
+
+        if (previousParticipation.length > 0) {
+            // Reactivate existing relationship and update QR code
+            console.log(`Reactivating previous participation for user ${userId} in event ${eventId}`);
+            await this.neo4jService.runWriteRelationQuery(
+                `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: false}]->(e:Event {id: $eventId})
+                 SET r.isActive = true, 
+                     r.rejoinedAt = datetime($rejoinedAt),
+                     r.qrCodeUrl = $qrCodeUrl,
+                     r.leftAt = null
+                 SET e.currentParticipants = e.currentParticipants + 1
+                 SET e.updatedAt = datetime($updatedAt)
+                 RETURN e`,
+                {
+                    userId,
+                    eventId,
+                    rejoinedAt: new Date().toISOString(),
+                    qrCodeUrl,
+                    updatedAt: new Date().toISOString(),
+                }
+            );
+        } else {
+            // Create new participation relationship
+            console.log(`Creating new participation for user ${userId} in event ${eventId}`);
+            await this.neo4jService.runWriteRelationQuery(
+                `MATCH (u:User {id: $userId}), (e:Event {id: $eventId})
+                 CREATE (u)-[:PARTICIPANT_OF {
+                    joinedAt: datetime($joinedAt), 
+                    isActive: true,
+                    qrCodeUrl: $qrCodeUrl
+                 }]->(e)
+                 SET e.currentParticipants = e.currentParticipants + 1
+                 SET e.updatedAt = datetime($updatedAt)
+                 RETURN e`,
+                {
+                    userId,
+                    eventId,
+                    joinedAt: new Date().toISOString(),
+                    qrCodeUrl,
+                    updatedAt: new Date().toISOString(),
+                }
+            );
+        }
+
+        console.log(`User ${userId} successfully joined event ${eventId} with QR code: ${qrCodeUrl}`);
     }
 
     /**
@@ -342,10 +394,10 @@ export class EventsService {
             throw new NotFoundException('Event not found');
         }
 
-        // Check if user is participating
+        // Check if user is participating and get QR code URL
         const participation = await this.neo4jService.runQuery(
             `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
-             RETURN r`,
+             RETURN r.qrCodeUrl as qrCodeUrl`,
             { userId, eventId }
         );
 
@@ -353,10 +405,22 @@ export class EventsService {
             throw new BadRequestException('User is not participating in this event');
         }
 
+        // Delete QR code from Cloudinary if it exists
+        const qrCodeUrl = participation[0]?.qrCodeUrl;
+        if (qrCodeUrl) {
+            try {
+                console.log(`Deleting QR code for user ${userId} leaving event ${eventId}: ${qrCodeUrl}`);
+                await this.qrService.deleteQRCode(qrCodeUrl);
+            } catch (error) {
+                console.error(`Failed to delete QR code: ${qrCodeUrl}`, error);
+                // Don't throw error, just log it - user can still leave the event
+            }
+        }
+
         // Deactivate participation and update event
         await this.neo4jService.runWriteRelationQuery(
             `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
-             SET r.isActive = false, r.leftAt = datetime($leftAt)
+             SET r.isActive = false, r.leftAt = datetime($leftAt), r.qrCodeUrl = null
              SET e.currentParticipants = e.currentParticipants - 1
              SET e.updatedAt = datetime($updatedAt)`,
             {
@@ -423,7 +487,7 @@ export class EventsService {
     async getEventParticipants(eventId: string): Promise<any[]> {
         const query = `
             MATCH (u:User)-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
-            RETURN u.id as userId, u.firstName, u.lastName, u.email, r.joinedAt as joinedAt
+            RETURN u.id as userId, u.firstName, u.lastName, u.email, r.joinedAt as joinedAt, r.qrCodeUrl as qrCodeUrl
             ORDER BY r.joinedAt DESC
         `;
 
@@ -470,5 +534,58 @@ export class EventsService {
             sponsorAmount: node.properties.sponsorAmount,
             sponsorFundedAt: node.properties.sponsorFundedAt ? new Date(node.properties.sponsorFundedAt) : undefined,
         };
+    }
+
+    /**
+     * Clean up duplicate participation relationships
+     * Keeps the most recent active relationship and removes duplicates
+     */
+    async cleanupDuplicateParticipations(): Promise<void> {
+        try {
+            console.log('Starting cleanup of duplicate participation relationships...');
+
+            // Find users with multiple active participation relationships to the same event
+            const duplicateQuery = `
+                MATCH (u:User)-[r:PARTICIPANT_OF {isActive: true}]->(e:Event)
+                WITH u, e, collect(r) as relationships
+                WHERE size(relationships) > 1
+                WITH u, e, relationships, max(relationships.joinedAt) as latestJoinedAt
+                UNWIND relationships as rel
+                WITH u, e, rel, latestJoinedAt
+                WHERE rel.joinedAt < latestJoinedAt
+                RETURN u.id as userId, e.id as eventId, rel.qrCodeUrl as qrCodeUrl
+            `;
+
+            const duplicates = await this.neo4jService.runQuery(duplicateQuery, {});
+
+            console.log(`Found ${duplicates.length} duplicate participation relationships to clean up`);
+
+            // Delete duplicate relationships and their QR codes
+            for (const duplicate of duplicates) {
+                try {
+                    // Delete QR code from Cloudinary if it exists
+                    if (duplicate.qrCodeUrl) {
+                        await this.qrService.deleteQRCode(duplicate.qrCodeUrl);
+                    }
+
+                    // Delete the duplicate relationship
+                    await this.neo4jService.runWriteQuery(
+                        `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
+                         WHERE r.joinedAt < (SELECT max(r2.joinedAt) 
+                                           FROM (u)-[r2:PARTICIPANT_OF {isActive: true}]->(e))
+                         DELETE r`,
+                        { userId: duplicate.userId, eventId: duplicate.eventId }
+                    );
+
+                    console.log(`Cleaned up duplicate participation for user ${duplicate.userId} in event ${duplicate.eventId}`);
+                } catch (error) {
+                    console.error(`Error cleaning up duplicate for user ${duplicate.userId} in event ${duplicate.eventId}:`, error);
+                }
+            }
+
+            console.log('Duplicate participation cleanup completed');
+        } catch (error) {
+            console.error('Error during duplicate participation cleanup:', error);
+        }
     }
 }

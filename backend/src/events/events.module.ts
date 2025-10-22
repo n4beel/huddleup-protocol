@@ -4,9 +4,10 @@ import { EventsService } from './events.service';
 import { DatabaseModule } from '../database/database.module';
 import { AuthMiddleware } from '../auth/auth.middleware';
 import { AuthModule } from '../auth/auth.module';
+import { QrModule } from '../qr/qr.module';
 
 @Module({
-    imports: [DatabaseModule, AuthModule],
+    imports: [DatabaseModule, AuthModule, QrModule],
     controllers: [EventsController],
     providers: [EventsService],
     exports: [EventsService],

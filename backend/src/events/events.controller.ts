@@ -187,4 +187,12 @@ export class EventsController {
     async getEventSponsor(@Param('id') eventId: string): Promise<any> {
         return this.eventsService.getEventSponsor(eventId);
     }
+
+    @Post('cleanup-duplicates')
+    @ApiOperation({ summary: 'Clean up duplicate participation relationships' })
+    @ApiResponse({ status: 200, description: 'Duplicate participations cleaned up successfully' })
+    async cleanupDuplicateParticipations(): Promise<{ message: string }> {
+        await this.eventsService.cleanupDuplicateParticipations();
+        return { message: 'Duplicate participation relationships cleaned up successfully' };
+    }
 }

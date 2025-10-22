@@ -33,6 +33,9 @@ jobs:
           echo "AURA_INSTANCENAME=${{ secrets.AURA_INSTANCENAME }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+          echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
 
       - name: NODE_ENV check
         run: |
