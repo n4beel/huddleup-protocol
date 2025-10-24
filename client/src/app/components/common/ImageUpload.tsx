@@ -6,9 +6,10 @@ import Image from "next/image";
 interface ImageUploadProps {
   className?: string;
   onChange?: (file: File | null) => void;
+  disabled:boolean;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ className = "", onChange }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ className = "", onChange , disabled}) => {
   const [preview, setPreview] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

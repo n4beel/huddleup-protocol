@@ -8,6 +8,8 @@ import { Select } from "@/app/components/common/Select";
 import Textarea from "@/app/components/common/Textarea";
 import { Button } from "@/app/components/common/Button";
 import Image from "next/image";
+import toast from "react-hot-toast";
+import { createEvent, uploadImage } from "@/app/services/event.service"; // ✅ Import upload API
 
 interface FormState {
     name: string;
@@ -36,6 +38,8 @@ const CreateEvent = () => {
 
     const [errors, setErrors] = useState<FormErrors>({});
     const [step, setStep] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [uploading, setUploading] = useState<boolean>(false); // ✅ New state for upload
 
     const causes = [
         { _id: "1", title: "Climate Action" },
@@ -46,25 +50,34 @@ const CreateEvent = () => {
 
     const handleChange = (key: keyof FormState, value: string) => {
         setForm((prev) => ({ ...prev, [key]: value }));
-
-        // clear error when user starts typing
         setErrors((prev) => ({ ...prev, [key]: "" }));
     };
 
-    const handleImageChange = (file: File | null) => {
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setForm((prev) => ({ ...prev, image: reader.result as string }));
-                setErrors((prev) => ({ ...prev, image: "" }));
-            };
-            reader.readAsDataURL(file);
-        } else {
+    // ✅ Updated handleImageChange with upload API
+    const handleImageChange = async (file: File | null) => {
+        if (!file) {
             setForm((prev) => ({ ...prev, image: "" }));
+            return;
+        }
+
+        try {
+            setUploading(true);
+            const toastId = toast.loading("Uploading image...");
+
+            const imageUrl = await uploadImage(file); // API call
+
+            setForm((prev) => ({ ...prev, image: imageUrl }));
+            setErrors((prev) => ({ ...prev, image: "" }));
+
+            toast.success("Image uploaded successfully!", { id: toastId });
+        } catch (error) {
+            console.error("Image upload failed:", error);
+            toast.error("Failed to upload image.");
+        } finally {
+            setUploading(false);
         }
     };
 
-    // ✅ Validation function for each step
     const validateStep = (): boolean => {
         const newErrors: FormErrors = {};
 
@@ -97,11 +110,40 @@ const CreateEvent = () => {
         if (step > 1) setStep(step - 1);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (validateStep()) {
-            console.log("✅ Event Data Submitted:", form);
-            alert("🎉 Event created successfully!");
+        if (!validateStep()) return;
+
+        setLoading(true);
+        try {
+            const payload = {
+                title: form.name,
+                description: form.description,
+                eventDate: new Date(form.date).toISOString(),
+                location: form.location,
+                eventType: form.cause,
+                fundingRequired: Number(form.reward),
+                airdropAmount: 0,
+                bannerImage: form.image,
+            };
+
+            await createEvent(payload);
+            toast.success("🎉 Event created successfully!");
+
+            setForm({
+                name: "",
+                location: "",
+                cause: "",
+                date: "",
+                reward: "",
+                image: "",
+                description: "",
+            });
+            setStep(1);
+        } catch (error: any) {
+            toast.error(error.message || "❌ Failed to create event");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -204,7 +246,13 @@ const CreateEvent = () => {
                     {/* 🖼️ STEP 3 — Image Upload */}
                     {step === 3 && (
                         <div className="space-y-6 animate-fadeIn">
-                            <ImageUpload className="h-72" onChange={handleImageChange} />
+                            {!form.image && (
+                                <ImageUpload
+                                    className="h-72"
+                                    onChange={handleImageChange}
+                                    disabled={uploading}
+                                />
+                            )}
                             {errors.image && (
                                 <p className="text-red-500 text-sm mt-1">{errors.image}</p>
                             )}
@@ -229,17 +277,29 @@ const CreateEvent = () => {
                                 variant="light"
                                 type="button"
                                 onClick={handleBack}
+                                disabled={loading || uploading}
                             >
                                 Back
                             </Button>
                         )}
                         {step < 3 ? (
-                            <Button size="md" variant="dark" type="button" onClick={handleNext}>
+                            <Button
+                                size="md"
+                                variant="dark"
+                                type="button"
+                                onClick={handleNext}
+                                disabled={loading || uploading}
+                            >
                                 Next
                             </Button>
                         ) : (
-                            <Button size="md" variant="dark" type="submit">
-                                Create Event
+                            <Button
+                                size="md"
+                                variant="dark"
+                                type="submit"
+                                disabled={loading || uploading}
+                            >
+                                {loading ? "Creating..." : "Create Event"}
                             </Button>
                         )}
                     </div>

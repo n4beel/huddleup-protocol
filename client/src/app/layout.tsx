@@ -5,7 +5,8 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Container from "./components/common/Container";
 import Web3AuthWrapper from "./components/Auth/Web3AuthWrapper";
-
+import NextTopLoader from "nextjs-toploader";
+import { Toaster } from 'react-hot-toast';
 
 // Load Poppins (for headings)
 const poppins = Poppins({
@@ -49,11 +50,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiased font-body`}>
+        <NextTopLoader color="#00d5be" height={5} />
         <Web3AuthWrapper>
           <Container>
             {children}
           </Container>
         </Web3AuthWrapper>
+        <Toaster />
       </body>
     </html>
   );

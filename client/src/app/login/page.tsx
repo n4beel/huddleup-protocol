@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import React from "react";
+import WalletConnection from "../components/Auth/WalletConnection";
 
 const Login = () => {
 
@@ -28,28 +29,9 @@ const Login = () => {
 
       {/* Buttons */}
       <div className="flex flex-col items-center gap-4 w-full max-w-sm my-8">
-        <button className="w-full border border-black rounded-xl flex items-center justify-center gap-3 p-4 text-center text-black font-medium bg-white transition-all duration-200 hover:bg-black hover:text-white active:scale-95">
-          <Image
-            src="/assets/icons/apple.svg"
-            alt="Apple Logo"
-            width={20}
-            height={20}
-            className="transition-transform duration-200 group-hover:scale-110"
-          />
-          Continue with Apple
-        </button>
-
-        <button className="w-full border border-black rounded-xl flex items-center justify-center gap-3 p-4 text-center text-black font-medium bg-white transition-all duration-200 hover:bg-primary hover:text-white active:scale-95">
-          <Image
-            src="/assets/icons/google.svg"
-            alt="Google Logo"
-            width={20}
-            height={20}
-            className="transition-transform duration-200 group-hover:scale-110"
-          />
-          Continue with Google
-        </button>
-
+            <WalletConnection>
+                Get Started
+            </WalletConnection>
       </div>
 
       {/* Footer */}

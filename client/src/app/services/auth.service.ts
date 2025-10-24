@@ -34,7 +34,7 @@ class AuthService {
 
     constructor() {
         // Get API URL from environment or default to localhost
-        this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        this.baseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
         // Test backend connectivity on initialization
         // this.testBackendConnectivity();
