@@ -4,12 +4,14 @@ import { Event, CreateEventDto, UpdateEventDto, FundEventDto } from './entities/
 import { QrService } from '../qr/qr.service';
 import { v4 as uuidv4 } from 'uuid';
 import { randomBytes } from 'crypto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class EventsService {
     constructor(
         private readonly neo4jService: Neo4jService,
-        private readonly qrService: QrService
+        private readonly qrService: QrService,
+        private readonly usersService: UsersService
     ) { }
 
     /**
@@ -432,9 +434,14 @@ export class EventsService {
             { userId, eventId }
         );
 
+        const user = await this.usersService.findById(userId);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
         // Generate QR code for participation verification
-        console.log(`Generating QR code for user ${userId} participating in event ${eventId}`);
-        const qrCodeUrl = await this.qrService.generateParticipationQR(userId, eventId);
+        console.log(`Generating QR code for user, wallet address: ${user.walletAddress}, participating in event, onchain event id: ${event.onchainEventId}`);
+        const qrCodeUrl = await this.qrService.generateParticipationQR(user.walletAddress, event.onchainEventId);
 
         if (previousParticipation.length > 0) {
             // Reactivate existing relationship and update QR code

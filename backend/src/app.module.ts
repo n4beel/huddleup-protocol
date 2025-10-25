@@ -10,6 +10,7 @@ import { UploadModule } from './upload/upload.module';
 import { QrModule } from './qr/qr.module';
 import { QrController } from './qr/qr.controller';
 import databaseConfig from './config/database.config';
+import { BlockchainModule } from './blockchain/blockchain.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import databaseConfig from './config/database.config';
     EventsModule,
     UploadModule,
     QrModule,
+    BlockchainModule,
   ],
   controllers: [AppController, QrController],
   providers: [AppService],

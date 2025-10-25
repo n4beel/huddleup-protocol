@@ -20,17 +20,17 @@ export class QrService {
      * @param eventId - Event ID
      * @returns Cloudinary URL of the generated QR code
      */
-    async generateParticipationQR(userId: string, eventId: string): Promise<string> {
+    async generateParticipationQR(walletAddress: string, eventId: string): Promise<string> {
         try {
             // Create QR data with user and event information
             const qrData = JSON.stringify({
-                userId,
+                walletAddress,
                 eventId,
                 type: 'participation_verification',
                 timestamp: new Date().toISOString(),
             });
 
-            console.log(`Generating QR code for user ${userId} and event ${eventId}`);
+            console.log(`Generating QR code for user, wallet address: ${walletAddress}, and event, onchain event id: ${eventId}`);
 
             // Generate QR code as buffer
             const qrBuffer = await QRCode.toBuffer(qrData, {
@@ -49,7 +49,7 @@ export class QrService {
                 `data:image/png;base64,${qrBuffer.toString('base64')}`,
                 {
                     folder: 'huddleup-protocol/qr-codes',
-                    public_id: `participation_${userId}_${eventId}`,
+                    public_id: `participation_${walletAddress}_${eventId}`,
                     resource_type: 'image',
                     quality: 'auto',
                     fetch_format: 'auto',

@@ -5,9 +5,10 @@ import { DatabaseModule } from '../database/database.module';
 import { AuthMiddleware } from '../auth/auth.middleware';
 import { AuthModule } from '../auth/auth.module';
 import { QrModule } from '../qr/qr.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-    imports: [DatabaseModule, AuthModule, QrModule],
+    imports: [DatabaseModule, AuthModule, QrModule, UsersModule],
     controllers: [EventsController],
     providers: [EventsService],
     exports: [EventsService],

@@ -55,8 +55,8 @@ export class WebhookHandlerService {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly eventsService: EventsService,
-        private readonly usersService: UsersService,
+        // private readonly eventsService: EventsService,
+        // private readonly usersService: UsersService,
     ) {
         this.publicClient = createPublicClient({
             chain: sepolia,
@@ -65,17 +65,17 @@ export class WebhookHandlerService {
     }
 
     async handleWebhook(payload: AlchemyWebhookPayload) {
-        this.logger.log(`Processing webhook for block ${payload.block.number}`);
+        this.logger.log(`Processing webhook for block ${payload?.block?.number}`);
 
         try {
             // Process each log in the block
-            for (const log of payload.block.logs) {
-                await this.processLog(log, payload.block);
+            for (const log of payload?.block?.logs) {
+                await this.processLog(log, payload?.block);
             }
 
-            this.logger.log(`Successfully processed ${payload.block.logs.length} logs from block ${payload.block.number}`);
+            this.logger.log(`Successfully processed ${payload?.block?.logs?.length} logs from block ${payload?.block?.number}`);
         } catch (error) {
-            this.logger.error(`Error processing webhook for block ${payload.block.number}:`, error);
+            this.logger.error(`Error processing webhook for block ${payload?.block?.number}:`, error);
             throw error; // Re-throw to trigger webhook retry
         }
     }
