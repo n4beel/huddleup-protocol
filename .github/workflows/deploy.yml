@@ -36,6 +36,8 @@ jobs:
           echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
           echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
           echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
+          echo "INFURA_API_KEY=${{ secrets.INFURA_API_KEY }}" >> .env
+          echo "HUDDLEUP_CONTRACT_ADDRESS=${{ secrets.HUDDLEUP_CONTRACT_ADDRESS }}" >> .env
 
       - name: NODE_ENV check
         run: |

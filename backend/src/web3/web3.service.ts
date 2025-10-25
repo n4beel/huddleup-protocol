@@ -1,18 +1,12 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ethers } from 'ethers';
+import { HUDDLEUP_ABI } from './contract-abi';
 
 @Injectable()
 export class Web3Service implements OnModuleInit {
     private readonly logger = new Logger(Web3Service.name);
-    private readonly contractAddress = '0xD4F25c861905DBe99f40A1361C167b404f4000A2';
-
-    // !!! IMPORTANT !!!
-    // 1. Paste your Contract ABI here (from Etherscan Step 3)
-    private readonly contractABI = [{ "inputs": [{ "internalType": "address", "name": "_pyusdToken", "type": "address" }], "stateMutability": "nonpayable", "type": "constructor" }, { "inputs": [], "name": "AlreadyParticipant", "type": "error" }, { "inputs": [], "name": "AlreadyReceivedAirdrop", "type": "error" }, { "inputs": [], "name": "EventAlreadyExists", "type": "error" }, { "inputs": [], "name": "EventDateInPast", "type": "error" }, { "inputs": [], "name": "EventDateNotReached", "type": "error" }, { "inputs": [], "name": "EventNotFound", "type": "error" }, { "inputs": [], "name": "EventNotFunded", "type": "error" }, { "inputs": [], "name": "InsufficientFunding", "type": "error" }, { "inputs": [], "name": "InvalidEventId", "type": "error" }, { "inputs": [], "name": "NotOrganizer", "type": "error" }, { "inputs": [], "name": "NotParticipant", "type": "error" }, { "inputs": [], "name": "NotSponsor", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }], "name": "OwnableInvalidOwner", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "OwnableUnauthorizedAccount", "type": "error" }, { "inputs": [], "name": "ReentrancyGuardReentrantCall", "type": "error" }, { "inputs": [], "name": "TransferFailed", "type": "error" }, { "inputs": [], "name": "WithdrawalNotAllowed", "type": "error" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "bytes32", "name": "onchainEventId", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "organizer", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "fundingRequired", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "airdropAmount", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "eventDate", "type": "uint256" }], "name": "EventCreated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "bytes32", "name": "eventId", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "sponsor", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "EventFunded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "bytes32", "name": "eventId", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "sponsor", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "FundsWithdrawn", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "bytes32", "name": "eventId", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "participant", "type": "address" }], "name": "ParticipantJoined", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "bytes32", "name": "eventId", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "participant", "type": "address" }], "name": "ParticipantLeft", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "bytes32", "name": "eventId", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "participant", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "airdropAmount", "type": "uint256" }], "name": "ParticipantVerified", "type": "event" }, { "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }, { "internalType": "uint256", "name": "", "type": "uint256" }], "name": "eventParticipants", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }], "name": "events", "outputs": [{ "internalType": "address", "name": "organizer", "type": "address" }, { "internalType": "address", "name": "sponsor", "type": "address" }, { "internalType": "uint256", "name": "fundingRequired", "type": "uint256" }, { "internalType": "uint256", "name": "airdropAmount", "type": "uint256" }, { "internalType": "uint256", "name": "eventDate", "type": "uint256" }, { "internalType": "uint256", "name": "totalFunding", "type": "uint256" }, { "internalType": "bool", "name": "isFunded", "type": "bool" }, { "internalType": "bool", "name": "isCompleted", "type": "bool" }, { "internalType": "bool", "name": "exists", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_onchainEventId", "type": "bytes32" }, { "internalType": "address", "name": "_organizer", "type": "address" }, { "internalType": "uint256", "name": "_fundingRequired", "type": "uint256" }, { "internalType": "uint256", "name": "_airdropAmount", "type": "uint256" }, { "internalType": "uint256", "name": "_eventDate", "type": "uint256" }, { "internalType": "uint256", "name": "_fundingAmount", "type": "uint256" }], "name": "fundEvent", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }], "name": "getEvent", "outputs": [{ "components": [{ "internalType": "address", "name": "organizer", "type": "address" }, { "internalType": "address", "name": "sponsor", "type": "address" }, { "internalType": "uint256", "name": "fundingRequired", "type": "uint256" }, { "internalType": "uint256", "name": "airdropAmount", "type": "uint256" }, { "internalType": "uint256", "name": "eventDate", "type": "uint256" }, { "internalType": "uint256", "name": "totalFunding", "type": "uint256" }, { "internalType": "bool", "name": "isFunded", "type": "bool" }, { "internalType": "bool", "name": "isCompleted", "type": "bool" }, { "internalType": "bool", "name": "exists", "type": "bool" }], "internalType": "struct HuddleUpProtocol.Event", "name": "", "type": "tuple" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }], "name": "getEventParticipants", "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }, { "internalType": "address", "name": "_participant", "type": "address" }], "name": "getParticipant", "outputs": [{ "components": [{ "internalType": "bool", "name": "isActive", "type": "bool" }, { "internalType": "bool", "name": "hasReceivedAirdrop", "type": "bool" }, { "internalType": "uint256", "name": "joinedAt", "type": "uint256" }, { "internalType": "uint256", "name": "leftAt", "type": "uint256" }], "internalType": "struct HuddleUpProtocol.Participant", "name": "", "type": "tuple" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }], "name": "joinEvent", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }], "name": "leaveEvent", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }, { "internalType": "address", "name": "", "type": "address" }], "name": "participants", "outputs": [{ "internalType": "bool", "name": "isActive", "type": "bool" }, { "internalType": "bool", "name": "hasReceivedAirdrop", "type": "bool" }, { "internalType": "uint256", "name": "joinedAt", "type": "uint256" }, { "internalType": "uint256", "name": "leftAt", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "pyusdToken", "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }, { "internalType": "address", "name": "_participant", "type": "address" }], "name": "verifyParticipant", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "bytes32", "name": "_eventId", "type": "bytes32" }], "name": "withdrawRemainingFunds", "outputs": [], "stateMutability": "nonpayable", "type": "function" }]
-
-    // 2. Use a WebSocket (WSS) RPC URL for event listening.
-    //    HTTP URLs do not support pub/sub and are inefficient (polling).
-    //    Get a WSS URL from providers like Infura, Alchemy, or QuickNode.
+    private readonly contractAddress = process.env.HUDDLEUP_CONTRACT_ADDRESS as string;
+    private readonly contractABI = HUDDLEUP_ABI;
     private readonly rpcUrl = `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`
 
     async onModuleInit() {
@@ -37,11 +31,6 @@ export class Web3Service implements OnModuleInit {
             contract.on('*', (event) => {
                 this.logger.log('--- NEW EVENT RECEIVED ---');
 
-                // The 'event' object contains all the event data
-                // event.fragment.name contains the event name (e.g., "Transfer")
-                // event.args contains the event arguments
-                // event.log contains raw log data (topic, data, blockNumber, etc.)
-
                 this.logger.log(`Event Name: ${event.fragment.name}`);
                 this.logger.log(`Arguments: ${JSON.stringify(event.args)}`);
                 this.logger.log(`Block Number: ${event.log.blockNumber}`);
@@ -64,18 +53,105 @@ export class Web3Service implements OnModuleInit {
     }
 
     private handleEvent(event: ethers.EventLog) {
-        //
-        // --- YOUR BUSINESS LOGIC GOES HERE ---
-        //
-        // Example:
-        // if (event.fragment.name === 'PaymentReceived') {
-        //   const [from, amount, message] = event.args;
-        //   console.log(`Received ${amount} from ${from} with message: ${message}`);
-        //   // this.myDatabaseService.savePayment(...);
-        // }
-        //
-        // if (event.fragment.name === 'ItemSold') {
-        //    // ...
-        // }
+        this.logger.log(`Handling event: ${event.fragment.name}`);
+
+        switch (event.fragment.name) {
+            case 'EventCreated':
+                this.handleEventCreated(event);
+                break;
+
+            case 'EventFunded':
+                this.handleEventFunded(event);
+                break;
+
+            case 'ParticipantJoined':
+                this.handleParticipantJoined(event);
+                break;
+
+            case 'ParticipantLeft':
+                this.handleParticipantLeft(event);
+                break;
+
+            case 'ParticipantVerified':
+                this.handleParticipantVerified(event);
+                break;
+
+            case 'FundsWithdrawn':
+                this.handleFundsWithdrawn(event);
+                break;
+
+            case 'OwnershipTransferred':
+                this.handleOwnershipTransferred(event);
+                break;
+
+            default:
+                this.logger.warn(`Unhandled event type: ${event.fragment.name}`);
+        }
+    }
+
+    private handleEventCreated(event: ethers.EventLog) {
+        const { onchainEventId, organizer, fundingRequired, airdropAmount, eventDate } = event.args;
+
+        this.logger.log(`EventCreated: ${onchainEventId} by ${organizer}`);
+        this.logger.log(`Funding Required: ${fundingRequired.toString()}`);
+        this.logger.log(`Airdrop Amount: ${airdropAmount.toString()}`);
+        this.logger.log(`Event Date: ${new Date(Number(eventDate) * 1000)}`);
+
+        // TODO: Update database with event creation
+        // await this.eventsService.updateEventStatus(onchainEventId, 'created');
+    }
+
+    private handleEventFunded(event: ethers.EventLog) {
+        const { eventId, sponsor, amount } = event.args;
+
+        this.logger.log(`EventFunded: ${eventId} by ${sponsor} with ${amount.toString()}`);
+
+        // TODO: Update database with funding information
+        // await this.eventsService.updateEventStatus(eventId, 'funded');
+    }
+
+    private handleParticipantJoined(event: ethers.EventLog) {
+        const { eventId, participant } = event.args;
+
+        this.logger.log(`ParticipantJoined: ${participant} to event ${eventId}`);
+
+        // TODO: Update database with participant information
+        // await this.eventsService.addParticipant(eventId, participant);
+    }
+
+    private handleParticipantLeft(event: ethers.EventLog) {
+        const { eventId, participant } = event.args;
+
+        this.logger.log(`ParticipantLeft: ${participant} from event ${eventId}`);
+
+        // TODO: Update database to mark participant as left
+        // await this.eventsService.removeParticipant(eventId, participant);
+    }
+
+    private handleParticipantVerified(event: ethers.EventLog) {
+        const { eventId, participant, airdropAmount } = event.args;
+
+        this.logger.log(`ParticipantVerified: ${participant} for event ${eventId} with airdrop ${airdropAmount.toString()}`);
+
+        // TODO: Update database with verification and airdrop information
+        // await this.eventsService.verifyParticipant(eventId, participant, airdropAmount);
+    }
+
+    private handleFundsWithdrawn(event: ethers.EventLog) {
+        const { eventId, sponsor, amount } = event.args;
+
+        this.logger.log(`FundsWithdrawn: ${amount.toString()} by ${sponsor} for event ${eventId}`);
+
+        // TODO: Update database with withdrawal information
+        // await this.eventsService.recordWithdrawal(eventId, sponsor, amount);
+    }
+
+    private handleOwnershipTransferred(event: ethers.EventLog) {
+        const { previousOwner, newOwner } = event.args;
+
+        this.logger.log(`OwnershipTransferred: from ${previousOwner} to ${newOwner}`);
+
+        // TODO: Update database with ownership change
+        // await this.eventsService.updateOwnership(previousOwner, newOwner);
     }
 }

@@ -1,0 +1,673 @@
+export const HUDDLEUP_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_pyusdToken",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "AlreadyParticipant",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "AlreadyReceivedAirdrop",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventAlreadyExists",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventDateInPast",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventDateNotReached",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventNotFound",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventNotFunded",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InsufficientFunding",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidEventId",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NotOrganizer",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NotParticipant",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NotSponsor",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnableInvalidOwner",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "OwnableUnauthorizedAccount",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ReentrancyGuardReentrantCall",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "TransferFailed",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "WithdrawalNotAllowed",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "onchainEventId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "organizer",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "fundingRequired",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "airdropAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "eventDate",
+                "type": "uint256"
+            }
+        ],
+        "name": "EventCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "eventId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sponsor",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "EventFunded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "eventId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sponsor",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "FundsWithdrawn",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "eventId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "participant",
+                "type": "address"
+            }
+        ],
+        "name": "ParticipantJoined",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "eventId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "participant",
+                "type": "address"
+            }
+        ],
+        "name": "ParticipantLeft",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "eventId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "participant",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "airdropAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "ParticipantVerified",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "eventParticipants",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "events",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "organizer",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "sponsor",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "fundingRequired",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "airdropAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "eventDate",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "totalFunding",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bool",
+                "name": "isFunded",
+                "type": "bool"
+            },
+            {
+                "internalType": "bool",
+                "name": "isCompleted",
+                "type": "bool"
+            },
+            {
+                "internalType": "bool",
+                "name": "exists",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_onchainEventId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_organizer",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_fundingRequired",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_airdropAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_eventDate",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_fundingAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "fundEvent",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getEvent",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "organizer",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "sponsor",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "fundingRequired",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "airdropAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "eventDate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "totalFunding",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isFunded",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isCompleted",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "exists",
+                        "type": "bool"
+                    }
+                ],
+                "internalType": "struct HuddleUpProtocol.Event",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getEventParticipants",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_participant",
+                "type": "address"
+            }
+        ],
+        "name": "getParticipant",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bool",
+                        "name": "isActive",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "hasReceivedAirdrop",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "joinedAt",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "leftAt",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct HuddleUpProtocol.Participant",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "joinEvent",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "leaveEvent",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "participants",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "isActive",
+                "type": "bool"
+            },
+            {
+                "internalType": "bool",
+                "name": "hasReceivedAirdrop",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint256",
+                "name": "joinedAt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "leftAt",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pyusdToken",
+        "outputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_participant",
+                "type": "address"
+            }
+        ],
+        "name": "verifyParticipant",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_eventId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "withdrawRemainingFunds",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+] as const;
