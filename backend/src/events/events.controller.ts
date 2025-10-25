@@ -109,12 +109,23 @@ export class EventsController {
     @Get(':id')
     @ApiOperation({ summary: 'Get event by ID' })
     @ApiParam({ name: 'id', description: 'Event ID' })
+    @ApiQuery({ name: 'userId', required: false, description: 'Optional user ID for contextual queries (e.g. participation etc)' })
     @ApiResponse({ status: 200, description: 'Event retrieved successfully', type: Event })
     @ApiResponse({ status: 404, description: 'Event not found' })
-    async findById(@Param('id') id: string): Promise<Event> {
+    async findById(
+        @Param('id') id: string,
+        @Query('userId') userId?: string
+    ): Promise<Event & { relationship?: any }> {
+        // Optionally, you may consider passing userId to the service for future context-aware feature
         const event = await this.eventsService.findById(id);
+
         if (!event) {
             throw new Error('Event not found');
+        }
+
+        if (userId) {
+            const relationship = await this.eventsService.findRelationshipByEventIdAndUserId(id, userId);
+            return { ...event, relationship };
         }
         return event;
     }

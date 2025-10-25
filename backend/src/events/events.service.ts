@@ -758,4 +758,19 @@ export class EventsService {
             console.error('Error during duplicate participation cleanup:', error);
         }
     }
+
+    async findRelationshipByEventIdAndUserId(eventId: string, userId: string): Promise<any> {
+        const query = `
+            MATCH (u:User {id: $userId})-[r]->(e:Event {id: $eventId})
+            WHERE 
+                type(r) IN ['PARTICIPANT_OF', 'ORGANIZER_OF', 'SPONSOR_OF']
+                AND (
+                    type(r) <> 'PARTICIPANT_OF' OR r.isActive = true
+                )
+            RETURN r
+        `;
+
+        const result = await this.neo4jService.runQuery(query, { eventId, userId });
+        return result[0]?.r?.type || 'NO_RELATIONSHIP';
+    }
 }
