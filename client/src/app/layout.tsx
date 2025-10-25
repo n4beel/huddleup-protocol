@@ -7,6 +7,7 @@ import Container from "./components/common/Container";
 import Web3AuthWrapper from "./components/Auth/Web3AuthWrapper";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from 'react-hot-toast';
+import { AuthHydration } from "./providers";
 
 // Load Poppins (for headings)
 const poppins = Poppins({
@@ -50,6 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiased font-body`}>
+        <AuthHydration />
         <NextTopLoader color="#00d5be" height={5} />
         <Web3AuthWrapper>
           <Container>

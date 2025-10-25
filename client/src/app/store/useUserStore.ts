@@ -1,24 +1,53 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { create } from 'zustand';
+import axios from 'axios';
 
-interface UserState {
-  address: string | null
-  isAuthenticated: boolean
-  setUser: (address: string, isAuthenticated: boolean) => void
-  clearUser: () => void
+interface User {
+  address?: string;
+  [key: string]: any;
 }
 
-export const useUserStore = create<UserState>()(
-  persist(
-    (set) => ({
-      address: null,
-      isAuthenticated: false,
-      setUser: (address, isAuthenticated) => set({ address, isAuthenticated }),
-      clearUser: () => set({ address: null, isAuthenticated: false }),
-    }),
-    {
-      name: 'user-storage', // key for localStorage
-      storage: createJSONStorage(() => localStorage), // ✅ correct pattern
+interface UserState {
+  user: User | null;
+  idToken: string | null;
+  setUser: (user: User) => void;
+  setIdToken: (token: string) => void;
+  clearUser: () => void;
+  hydrate: () => void; // 👈 add this
+}
+
+export const useUserStore = create<UserState>((set) => ({
+  user: null,
+  idToken: null,
+
+  setUser: (user) => {
+    set({ user });
+    localStorage.setItem('user', JSON.stringify(user));
+  },
+
+  setIdToken: (token) => {
+    set({ idToken: token });
+    localStorage.setItem('idToken', token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  },
+
+  clearUser: () => {
+    set({ user: null, idToken: null });
+    localStorage.removeItem('user');
+    localStorage.removeItem('idToken');
+    delete axios.defaults.headers.common['Authorization'];
+  },
+
+  // 👇 restores user + token on refresh
+  hydrate: () => {
+    if (typeof window === 'undefined') return;
+
+    const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('idToken');
+
+    if (storedUser) set({ user: JSON.parse(storedUser) });
+    if (storedToken) {
+      set({ idToken: storedToken });
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
-  )
-)
+  },
+}));

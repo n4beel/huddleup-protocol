@@ -6,10 +6,10 @@ import { useUserStore } from '@/app/store/useUserStore';
 
 const CTA = () => {
   const router = useRouter();
-  const { isAuthenticated } = useUserStore();
+  const { user } = useUserStore();
 
   const handleClick = () => {
-    if (isAuthenticated) {
+    if (user) {
       router.push('/events/create'); // ✅ go to create event page
     } else {
       router.push('/login'); // ✅ go to login page
@@ -30,7 +30,7 @@ const CTA = () => {
         className='mt-4'
         onClick={handleClick}
       >
-        {isAuthenticated ? 'Create Event' : 'Register'}
+        {user ? 'Create Event' : 'Register'}
       </Button>
     </div>
   );

@@ -63,13 +63,13 @@ export const createEvent = async (data: {
 };
 
 
-export const uploadImage = async (file: File): Promise<string> => {
+export const uploadImage = async (file: File): Promise<{urls:string[]}> => {
   try {
     const formData = new FormData();
 
     // ⚠️ Change "image" to match your backend field name
     // If your backend expects "file", keep it as is.
-    formData.append("image", file);
+    formData.append("images", file);
 
     const response = await axios.post(`${BASE_URL}/upload/images`, formData, {
       headers: {
@@ -78,7 +78,7 @@ export const uploadImage = async (file: File): Promise<string> => {
     });
 
     // Assuming your backend returns { url: "https://..." }
-    return response.data.url;
+    return response.data;
   } catch (error: any) {
     console.error("Image upload failed:", error.response?.data || error);
     throw new Error(error.response?.data?.message || "Failed to upload image");

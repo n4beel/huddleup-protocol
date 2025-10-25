@@ -71,12 +71,6 @@ const web3AuthOptions: Web3AuthOptions = {
                         name: 'Continue with Google',
                         showOnModal: true,
                     },
-                    // Additional social login methods can be added here
-                    // email_passwordless: {
-                    //   name: 'Continue with Email',
-                    //   showOnModal: true,
-                    //   authConnectionId: process.env.NEXT_PUBLIC_EMAIL_PASSWORDLESS_CONNECTION_ID,
-                    // },
                 },
                 showOnModal: true,
             },

@@ -1,75 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
- * ModalCloseButton Component
- * 
- * Provides a manual close button for Web3Auth modals as a fallback
- * when automatic closing fails.
+ * ModalCloseButton
+ *
+ * Displays a manual "Close Modal" button if Web3Auth modal gets stuck.
  */
 export default function ModalCloseButton() {
-    const [showButton, setShowButton] = useState(false);
+  const [show, setShow] = useState(false);
 
-    useEffect(() => {
-        // Show button if modal is open
-        const checkForModal = () => {
-            const modal = document.querySelector('[data-web3auth-modal]') ||
-                document.querySelector('.w3a-modal__container');
-            setShowButton(!!modal);
-        };
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const modal = document.querySelector('[data-web3auth-modal], .w3a-modal__container');
+      setShow(!!modal);
+    });
 
-        // Check initially
-        checkForModal();
+    // Observe body for added/removed modals
+    observer.observe(document.body, { childList: true, subtree: true });
 
-        // Check periodically
-        const interval = setInterval(checkForModal, 1000);
+    return () => observer.disconnect();
+  }, []);
 
-        return () => clearInterval(interval);
-    }, []);
+  const handleClose = () => {
+    document.querySelectorAll('[data-web3auth-modal], .w3a-modal__container, .w3a-modal__overlay')
+      .forEach(el => el.remove());
+    document.body.classList.remove('wallet-connected');
+    setShow(false);
+  };
 
-    const handleClose = () => {
-        // Remove all modal elements
-        const selectors = [
-            '[data-web3auth-modal]',
-            '[data-web3auth-overlay]',
-            '[data-web3auth-backdrop]',
-            '.w3a-modal__container',
-            '.w3a-modal__overlay',
-            '[class*="modal"]'
-        ];
+  if (!show) return null;
 
-        selectors.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                if (element.textContent?.includes('Web3Auth') ||
-                    element.textContent?.includes('wallet') ||
-                    element.textContent?.includes('Connect')) {
-                    element.remove();
-                }
-            });
-        });
-
-        // Remove wallet-connected class
-        document.body.classList.remove('wallet-connected');
-
-        setShowButton(false);
-    };
-
-    if (!showButton) return null;
-
-    return (
-        <div className="fixed top-4 right-4 z-[10000]">
-            <button
-                onClick={handleClose}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
-                title="Close Modal"
-            >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                <span>Close Modal</span>
-            </button>
-        </div>
-    );
+  return (
+    <button
+      onClick={handleClose}
+      title="Close Modal"
+      className="fixed top-4 right-4 z-[10000] bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-red-700 transition flex items-center space-x-2"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      <span>Close Modal</span>
+    </button>
+  );
 }
