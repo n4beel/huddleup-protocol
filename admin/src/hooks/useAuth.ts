@@ -50,18 +50,15 @@ export function useAuth() {
 
         // Prevent multiple simultaneous calls
         if (authState.isLoading) {
-            console.log('Already verifying, skipping duplicate call');
             return;
         }
 
-        console.log('Starting backend verification for address:', address);
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
         try {
             const response = await authService.verifyJWT(idToken);
 
             if (response.success) {
-                console.log('Backend verification successful');
                 setAuthState({
                     isAuthenticated: true,
                     isLoading: false,
