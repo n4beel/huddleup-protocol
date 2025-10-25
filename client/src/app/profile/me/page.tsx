@@ -119,9 +119,9 @@ const Profile = () => {
                     </h4>
                 </section>
                 <section className='grid lg:grid-cols-3 gap-4 mt-6'>
-                    {events.map(event => (
+                    {/* {events.map(event => (
                         <EventCard key={event.id} event={event} />
-                    ))}
+                    ))} */}
                 </section>
             </main>
         </AppLayout>

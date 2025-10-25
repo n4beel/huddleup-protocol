@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useWeb3AuthConnect, useWeb3AuthDisconnect } from '@web3auth/modal/react';
+import { useWeb3AuthConnect } from '@web3auth/modal/react';
 import { useAccount } from 'wagmi';
 
 /**
@@ -13,7 +13,6 @@ import { useAccount } from 'wagmi';
 export default function Web3AuthModalHandler() {
   const { isConnected, loading, error } = useWeb3AuthConnect();
   const { address } = useAccount();
-  const { disconnect } = useWeb3AuthDisconnect();
 
   // Handle successful connection
   useEffect(() => {

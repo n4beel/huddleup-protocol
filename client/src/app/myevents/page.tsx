@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react'
 import AppLayout from '../components/common/AppLayout'
 import MyEventsTabs from '../components/Events/MyEventsTabs'
-import EventCard from '../components/Events/EventCard';
+// import EventCard from '../components/Events/EventCard';
 
 
 
@@ -79,9 +79,9 @@ const MyEvents = () => {
 
                 </section>
                 <section className='grid lg:grid-cols-3 gap-4'>
-                    {events.map(event => (
+                    {/* {events.map(event => (
                         <EventCard key={event.id} event={event} />
-                    ))}
+                    ))} */}
                 </section>
             </main>
         </AppLayout>

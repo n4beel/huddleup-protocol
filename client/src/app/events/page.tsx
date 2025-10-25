@@ -2,7 +2,7 @@ import React, { Suspense } from 'react'
 import AppLayout from '../components/common/AppLayout'
 import EventSearch from '../components/Events/EventSearch'
 import TagList from '../components/Events/TagList'
-import EventCard from '../components/Events/EventCard';
+// import EventCard from '../components/Events/EventCard';
 
 
 export const events = [
@@ -50,9 +50,9 @@ const EventsExplore = () => {
                 </Suspense>
                 <br />
                 <section className='grid lg:grid-cols-3 gap-4'>
-                    {events.map(event => (
+                    {/* {events.map(event => (
                         <EventCard key={event.id} event={event} />
-                    ))}
+                    ))} */}
                 </section>
             </main>
         </AppLayout>
