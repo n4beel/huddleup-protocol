@@ -21,8 +21,8 @@ const events_module_1 = require("./events/events.module");
 const upload_module_1 = require("./upload/upload.module");
 const qr_module_1 = require("./qr/qr.module");
 const qr_controller_1 = require("./qr/qr.controller");
+const web3_module_1 = require("./web3/web3.module");
 const database_config_1 = __importDefault(require("./config/database.config"));
-const blockchain_module_1 = require("./blockchain/blockchain.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -40,7 +40,7 @@ exports.AppModule = AppModule = __decorate([
             events_module_1.EventsModule,
             upload_module_1.UploadModule,
             qr_module_1.QrModule,
-            blockchain_module_1.BlockchainModule,
+            web3_module_1.Web3Module,
         ],
         controllers: [app_controller_1.AppController, qr_controller_1.QrController],
         providers: [app_service_1.AppService],
