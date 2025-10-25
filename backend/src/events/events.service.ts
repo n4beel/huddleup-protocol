@@ -3,6 +3,7 @@ import { Neo4jService } from '../database/neo4j.service';
 import { Event, CreateEventDto, UpdateEventDto, FundEventDto } from './entities/event.entity';
 import { QrService } from '../qr/qr.service';
 import { v4 as uuidv4 } from 'uuid';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class EventsService {
@@ -12,10 +13,19 @@ export class EventsService {
     ) { }
 
     /**
+     * Generate a random uint256 (32 bytes) as a hex string
+     */
+    private generateOnchainEventId(): string {
+        const randomBytesArray = randomBytes(32);
+        return '0x' + randomBytesArray.toString('hex');
+    }
+
+    /**
      * Create a new event
      */
     async createEvent(createEventDto: CreateEventDto & { organizerId: string }): Promise<Event> {
         const eventId = uuidv4();
+        const onchainEventId = this.generateOnchainEventId();
         const now = new Date();
 
         // Calculate max participants
@@ -48,6 +58,7 @@ export class EventsService {
 
         const parameters = {
             id: eventId,
+            onchainEventId: onchainEventId,
             title: createEventDto.title,
             description: createEventDto.description,
             eventDate: createEventDto.eventDate,
@@ -66,6 +77,7 @@ export class EventsService {
             `MATCH (u:User {id: $organizerId})
              CREATE (u)-[:ORGANIZER_OF {createdAt: datetime($createdAt)}]->(e:Event {
                 id: $id,
+                onchainEventId: $onchainEventId,
                 title: $title,
                 description: $description,
                 eventDate: datetime($eventDate),
@@ -663,6 +675,7 @@ export class EventsService {
     private mapNeo4jNodeToEvent(node: any): Event {
         return {
             id: node.properties.id,
+            onchainEventId: node.properties.onchainEventId,
             title: node.properties.title,
             description: node.properties.description,
             eventDate: this.convertNeo4jDateTime(node.properties.eventDate) || new Date(),

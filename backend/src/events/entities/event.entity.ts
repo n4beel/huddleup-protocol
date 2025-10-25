@@ -1,5 +1,6 @@
 export class Event {
     id: string;
+    onchainEventId: string; // Random uint256 for blockchain event ID
     title: string;
     description: string;
     eventDate: Date;

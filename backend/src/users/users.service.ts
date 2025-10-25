@@ -30,13 +30,82 @@ export class UsersService {
     }
 
     /**
+     * Clean up users with case-sensitive duplicate wallet addresses
+     */
+    async cleanupCaseSensitiveDuplicates(): Promise<{ deleted: number; kept: number }> {
+        try {
+            // Find users with the same wallet address but different cases
+            const findDuplicatesQuery = `
+                MATCH (u:User)
+                WITH toLower(u.walletAddress) as normalizedAddress, collect(u) as users
+                WHERE size(users) > 1
+                RETURN normalizedAddress, users
+            `;
+
+            const duplicates = await this.neo4jService.runQuery(findDuplicatesQuery);
+            let deleted = 0;
+            let kept = 0;
+
+            for (const duplicate of duplicates) {
+                const users = duplicate.users;
+                const normalizedAddress = duplicate.normalizedAddress;
+
+                // Sort by creation date, keep the most recent
+                const sortedUsers = users.sort((a: any, b: any) =>
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
+
+                const userToKeep = sortedUsers[0];
+                const usersToDelete = sortedUsers.slice(1);
+
+                // Update the user we're keeping to have the normalized address
+                const updateQuery = `
+                    MATCH (u:User {id: $userId})
+                    SET u.walletAddress = $normalizedAddress
+                    RETURN u
+                `;
+
+                await this.neo4jService.runWriteQuery(updateQuery, {
+                    userId: userToKeep.id,
+                    normalizedAddress: normalizedAddress
+                });
+
+                // Delete the duplicate users
+                for (const userToDelete of usersToDelete) {
+                    const deleteQuery = `
+                        MATCH (u:User {id: $userId})
+                        DETACH DELETE u
+                    `;
+
+                    await this.neo4jService.runWriteQuery(deleteQuery, {
+                        userId: userToDelete.id
+                    });
+
+                    deleted++;
+                }
+
+                kept++;
+            }
+
+            console.log(`Case-sensitive duplicates cleaned up: ${deleted} deleted, ${kept} kept`);
+            return { deleted, kept };
+        } catch (error) {
+            console.error('Error cleaning up case-sensitive duplicates:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Create a new user
      */
     async createUser(createUserDto: CreateUserDto): Promise<User> {
+        // Normalize wallet address to lowercase
+        const normalizedWalletAddress = createUserDto.walletAddress.toLowerCase();
+
         // Check if user with this wallet address already exists
-        const existingUser = await this.findByWalletAddress(createUserDto.walletAddress);
+        const existingUser = await this.findByWalletAddress(normalizedWalletAddress);
         if (existingUser) {
-            throw new Error(`User with wallet address ${createUserDto.walletAddress} already exists`);
+            throw new Error(`User with wallet address ${normalizedWalletAddress} already exists`);
         }
 
         const userId = uuidv4();
@@ -60,7 +129,7 @@ export class UsersService {
 
         const parameters = {
             id: userId,
-            walletAddress: createUserDto.walletAddress.toLowerCase(),
+            walletAddress: normalizedWalletAddress,
             connectionMethod: createUserDto.connectionMethod,
             firstName: createUserDto.firstName || null,
             lastName: createUserDto.lastName || null,
@@ -211,7 +280,9 @@ export class UsersService {
             } else {
                 // Create new user
                 console.log(`Creating new user with wallet: ${walletAddress}`);
-                return this.createUser(createUserDto);
+                // Create a new DTO with normalized wallet address
+                const normalizedDto = { ...createUserDto, walletAddress };
+                return this.createUser(normalizedDto);
             }
         } catch (error) {
             // If creation failed due to unique constraint violation, try to find and update the user

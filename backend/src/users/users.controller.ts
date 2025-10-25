@@ -60,4 +60,19 @@ export class UsersController {
         await this.usersService.cleanupDuplicateUsers();
         return { message: 'Duplicate users cleaned up successfully' };
     }
+
+    @Post('cleanup-case-sensitive-duplicates')
+    @ApiOperation({ summary: 'Clean up users with case-sensitive duplicate wallet addresses' })
+    @ApiResponse({
+        status: 200,
+        description: 'Case-sensitive duplicates cleaned up successfully'
+    })
+    async cleanupCaseSensitiveDuplicates(): Promise<{ message: string; deleted: number; kept: number }> {
+        const result = await this.usersService.cleanupCaseSensitiveDuplicates();
+        return {
+            message: 'Case-sensitive duplicates cleaned up successfully',
+            deleted: result.deleted,
+            kept: result.kept
+        };
+    }
 }

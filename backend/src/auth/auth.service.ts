@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import * as jose from 'jose';
+import { ethers } from 'ethers';
 import { UsersService } from '../users/users.service';
 import { Web3AuthJWTPayload, AuthenticatedUser } from './interfaces/jwt-payload.interface';
 import { CreateUserDto } from '../users/entities/user.entity';
@@ -46,31 +47,73 @@ export class AuthService {
     }
 
     /**
-     * Extract wallet address from JWT payload
+     * Extracts the EVM wallet address from the Web3Auth JWT payload.
+     * It prioritizes external wallets, then derives the address from the
+     * secp256k1 app key provided for social logins.
      */
     extractWalletAddress(payload: Web3AuthJWTPayload): string | null {
         const wallets = payload.wallets || [];
 
-        // Look for ethereum wallet first (external wallets)
+        // 1. Priority: Look for an external wallet (e.g., MetaMask)
+        // This is for users who connected an existing wallet.
         const ethereumWallet = wallets.find(wallet =>
             wallet.type === 'ethereum' && wallet.address
         );
-
         if (ethereumWallet?.address) {
             return ethereumWallet.address.toLowerCase();
         }
 
-        // Look for web3auth app key (social login)
-        const appKeyWallet = wallets.find(wallet =>
-            wallet.type === 'web3auth_app_key' && wallet.public_key
+        // 2. Main Logic: Find the social login (app key) for the EVM chain (secp256k1)
+        // This is the key we MUST derive the address from.
+        const evmAppKeyWallet = wallets.find(wallet =>
+            wallet.curve === 'secp256k1' &&
+            wallet.type === 'web3auth_app_key' && // This is the user's main app key
+            wallet.public_key
         );
 
-        if (appKeyWallet?.public_key) {
-            // For social login, we might need to derive the address from the public key
-            // For now, we'll use the public key as the identifier
-            return appKeyWallet.public_key.toLowerCase();
+        if (evmAppKeyWallet?.public_key) {
+            try {
+                // *** THE FIX ***
+                // The public key from the payload needs a '0x' prefix for ethers
+                const publicKey = evmAppKeyWallet.public_key.startsWith('0x')
+                    ? evmAppKeyWallet.public_key
+                    : `0x${evmAppKeyWallet.public_key}`;
+
+                // This will now correctly compute the address from "0x03aa...cfc"
+                const walletAddress = ethers.computeAddress(publicKey);
+                return walletAddress.toLowerCase();
+            } catch (error) {
+                console.error('Failed to derive Ethereum address from secp256k1 app key:', error, evmAppKeyWallet);
+                // If this fails, something is seriously wrong with the JWT key.
+            }
         }
 
+        // 3. Fallback: Check for *any* secp256k1 key (e.g., the threshold key)
+        // This is less ideal but can serve as a backup if the 'web3auth_app_key' type isn't present.
+        const anySecp256k1Wallet = wallets.find(wallet =>
+            wallet.curve === 'secp256k1' && wallet.public_key
+        );
+
+        if (anySecp256k1Wallet?.public_key) {
+            try {
+                const publicKey = anySecp256k1Wallet.public_key.startsWith('0x')
+                    ? anySecp256k1Wallet.public_key
+                    : `0x${anySecp256k1Wallet.public_key}`;
+
+                const walletAddress = ethers.computeAddress(publicKey);
+                return walletAddress.toLowerCase();
+            } catch (error) {
+                console.error('Failed to derive Ethereum address from fallback secp256k1 public key:', error, anySecp256k1Wallet);
+            }
+        }
+
+        // 4. Final Fallback: Look for any wallet with an address field
+        const anyWalletWithAddress = wallets.find(wallet => wallet.address);
+        if (anyWalletWithAddress?.address) {
+            return anyWalletWithAddress.address.toLowerCase();
+        }
+
+        // If we're here, we couldn't find an EVM-compatible address
         return null;
     }
 
@@ -98,12 +141,13 @@ export class AuthService {
         return 'other';
     }
 
+
     /**
      * Create or update user from JWT payload
      */
     async createOrUpdateUserFromJWT(payload: Web3AuthJWTPayload): Promise<AuthenticatedUser> {
+        // Extract wallet address from JWT payload
         const walletAddress = this.extractWalletAddress(payload);
-
         if (!walletAddress) {
             throw new BadRequestException('No wallet address found in JWT');
         }
