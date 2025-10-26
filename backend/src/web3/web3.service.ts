@@ -9,6 +9,7 @@ export class Web3Service implements OnModuleInit {
     private readonly contractAddress = process.env.HUDDLEUP_CONTRACT_ADDRESS as string;
     private readonly contractABI = HUDDLEUP_ABI;
     private readonly rpcUrl = `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`
+    private readonly shouldProcessEvents = false;
 
     async onModuleInit() {
         this.logger.log('Connecting to Sepolia via WebSocket...');
@@ -42,9 +43,9 @@ export class Web3Service implements OnModuleInit {
                     this.logger.log(`Block Number: ${event.log.blockNumber}`);
                     this.logger.log(`Transaction Hash: ${event.log.transactionHash}`);
 
-                    // Add your business logic here
-                    // e.g., save to database, send a notification, etc.
-                    this.handleEvent(event);
+                    if (this.shouldProcessEvents)
+                        this.handleEvent(event);
+
                 } catch (error) {
                     this.logger.error('Error processing event:', error);
                     this.logger.error('Event data:', JSON.stringify(event, (key, value) =>
@@ -152,7 +153,7 @@ export class Web3Service implements OnModuleInit {
         await this.eventsService.leaveEvent(eventId, participant.toLowerCase());
     }
 
-    private handleParticipantVerified(event: ethers.EventLog) {
+    private async handleParticipantVerified(event: ethers.EventLog) {
         const { eventId, participant, airdropAmount } = event.args;
 
         // Normalize amount: divide by 10^6 (assuming 6 decimal places for PYUSD)
@@ -161,7 +162,7 @@ export class Web3Service implements OnModuleInit {
         this.logger.log(`ParticipantVerified: ${participant} for event ${eventId} with airdrop ${normalizedAirdropAmount}`);
 
         // TODO: Update database with verification and airdrop information
-        // await this.eventsService.verifyParticipant(eventId, participant, normalizedAirdropAmount);
+        await this.eventsService.verifyParticipantInEvent(eventId, participant.toLowerCase(), normalizedAirdropAmount);
     }
 
     private handleFundsWithdrawn(event: ethers.EventLog) {

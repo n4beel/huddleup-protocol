@@ -587,6 +587,55 @@ export class EventsService {
     }
 
     /**
+     * Verify participant in an event
+     */
+    async verifyParticipantInEvent(onchainEventId: string, walletAddress: string, airdropAmount: number): Promise<void> {
+        const event = await this.findByOnchainEventId(onchainEventId);
+        if (!event) {
+            throw new NotFoundException('Event not found');
+        }
+
+        // Check if user is participating and get QR code URL
+        const participation = await this.neo4jService.runQuery(
+            `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {onchainEventId: $onchainEventId})
+             RETURN r.qrCodeUrl as qrCodeUrl`,
+            { walletAddress, onchainEventId }
+        );
+
+        if (participation.length === 0) {
+            throw new BadRequestException('User is not participating in this event');
+        }
+
+        // Delete QR code from Cloudinary if it exists
+        const qrCodeUrl = participation[0]?.qrCodeUrl;
+        if (qrCodeUrl) {
+            try {
+                console.log(`Deleting QR code for user ${walletAddress} leaving event ${onchainEventId}: ${qrCodeUrl}`);
+                await this.qrService.deleteQRCode(qrCodeUrl);
+            } catch (error) {
+                console.error(`Failed to delete QR code: ${qrCodeUrl}`, error);
+                // Don't throw error, just log it - user can still leave the event
+            }
+        }
+
+        // Deactivate participation and update event
+        await this.neo4jService.runWriteRelationQuery(
+            `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {onchainEventId: $onchainEventId})
+             SET r.isActive = false, r.verifiedAt = datetime($verifiedAt), r.qrCodeUrl = null
+             SET e.currentParticipants = e.currentParticipants - 1
+             SET e.updatedAt = datetime($updatedAt)`,
+            {
+                walletAddress,
+                onchainEventId,
+                verifiedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            }
+        );
+
+        console.log(`User ${walletAddress} successfully verified in event ${onchainEventId}`);
+    }
+
+    /**
      * Get event participants
      */
     async getEventParticipants(eventId: string): Promise<any[]> {
