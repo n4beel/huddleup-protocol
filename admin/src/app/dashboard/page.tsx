@@ -1,138 +1,210 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { eventsService, type Event } from '@/services/events.service';
+import EventCard from '@/components/EventCard';
+
+
 export default function Dashboard() {
+    const [activeTab, setActiveTab] = useState<'needing-sponsorship' | 'my-sponsored' | 'past-sponsored'>('needing-sponsorship');
+    const [eventsNeedingSponsorship, setEventsNeedingSponsorship] = useState<Event[]>([]);
+    const [mySponsoredEvents, setMySponsoredEvents] = useState<Event[]>([]);
+    const [pastSponsoredEvents, setPastSponsoredEvents] = useState<Event[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const { user, isAuthenticated } = useAuth();
+
+    // Fetch events based on active tab
+    const fetchEvents = async () => {
+        if (!isAuthenticated || !user?.id) {
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const [needingSponsorship, sponsoredEvents] = await Promise.all([
+                eventsService.getEventsNeedingSponsorship(),
+                eventsService.getAllSponsoredEvents(user.id)
+            ]);
+
+            setEventsNeedingSponsorship(needingSponsorship);
+            setMySponsoredEvents(sponsoredEvents.active);
+            setPastSponsoredEvents(sponsoredEvents.past);
+        } catch (err) {
+            console.error('Failed to fetch events:', err);
+            setError(err instanceof Error ? err.message : 'Failed to fetch events');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch events when component mounts or user changes
+    useEffect(() => {
+        fetchEvents();
+    }, [isAuthenticated, user?.id]);
+
+    // Event handlers
+    const handleSponsorEvent = (eventId: string) => {
+        console.log('Sponsor event:', eventId);
+        // TODO: Implement sponsorship flow
+    };
+
+    const handleViewDetails = (eventId: string) => {
+        console.log('View details:', eventId);
+        // TODO: Navigate to event details
+    };
+
+    const handleTrackProgress = (eventId: string) => {
+        console.log('Track progress:', eventId);
+        // TODO: Navigate to progress tracking
+    };
+
+    const handleViewReport = (eventId: string) => {
+        console.log('View report:', eventId);
+        // TODO: Navigate to event report
+    };
+
+    const handleShareResults = (eventId: string) => {
+        console.log('Share results:', eventId);
+        // TODO: Implement sharing functionality
+    };
+
+
+    const getCurrentEvents = () => {
+        switch (activeTab) {
+            case 'needing-sponsorship':
+                return eventsNeedingSponsorship;
+            case 'my-sponsored':
+                return mySponsoredEvents;
+            case 'past-sponsored':
+                return pastSponsoredEvents;
+            default:
+                return [];
+        }
+    };
+
+    // Show loading state
+    if (loading) {
+        return (
+            <div className="max-w-7xl mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Dashboard</h1>
+                    <p className="text-gray-600">Manage and discover social impact events on HuddleUp Protocol</p>
+                </div>
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-gray-600">Loading events...</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <div className="max-w-7xl mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Dashboard</h1>
+                    <p className="text-gray-600">Manage and discover social impact events on HuddleUp Protocol</p>
+                </div>
+                <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading events</h3>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <button
+                        onClick={fetchEvents}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                <p className="text-gray-600">Welcome to your HuddleUp dashboard</p>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Dashboard</h1>
+                <p className="text-gray-600">Manage and discover social impact events on HuddleUp Protocol</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Total Connections</p>
-                            <p className="text-2xl font-bold text-gray-900">1,234</p>
-                        </div>
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                    </div>
+            {/* Tab Navigation */}
+            <div className="mb-8">
+                <div className="border-b border-gray-200">
+                    <nav className="-mb-px flex space-x-8">
+                        <button
+                            onClick={() => setActiveTab('needing-sponsorship')}
+                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'needing-sponsorship'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Events Needing Sponsorship ({eventsNeedingSponsorship.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('my-sponsored')}
+                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'my-sponsored'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            My Sponsored Events ({mySponsoredEvents.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('past-sponsored')}
+                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'past-sponsored'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Past Sponsored Events ({pastSponsoredEvents.length})
+                        </button>
+                    </nav>
                 </div>
+            </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Active Groups</p>
-                            <p className="text-2xl font-bold text-gray-900">42</p>
-                        </div>
-                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                        </div>
+            {/* Tab Content */}
+            <div>
+                {getCurrentEvents().length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {getCurrentEvents().map((event) => (
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                activeTab={activeTab}
+                                onSponsorEvent={handleSponsorEvent}
+                                onViewDetails={handleViewDetails}
+                                onTrackProgress={handleTrackProgress}
+                                onViewReport={handleViewReport}
+                                onShareResults={handleShareResults}
+                            />
+                        ))}
                     </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Messages</p>
-                            <p className="text-2xl font-bold text-gray-900">89</p>
-                        </div>
-                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Events</p>
-                            <p className="text-2xl font-bold text-gray-900">15</p>
-                        </div>
-                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ) : (
+                    <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
+                        <p className="text-gray-600">
+                            {activeTab === 'needing-sponsorship' && 'No events are currently seeking sponsorship.'}
+                            {activeTab === 'my-sponsored' && 'You haven\'t sponsored any events yet.'}
+                            {activeTab === 'past-sponsored' && 'You haven\'t completed any sponsored events yet.'}
+                        </p>
                     </div>
-                </div>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-900">New connection request</p>
-                                <p className="text-xs text-gray-500">2 minutes ago</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-900">Joined Web3 Developers group</p>
-                                <p className="text-xs text-gray-500">1 hour ago</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-900">New message from Alice</p>
-                                <p className="text-xs text-gray-500">3 hours ago</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                    <div className="space-y-3">
-                        <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center space-x-3">
-                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                <span className="font-medium text-gray-900">Create New Group</span>
-                            </div>
-                        </button>
-                        <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center space-x-3">
-                                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span className="font-medium text-gray-900">Schedule Event</span>
-                            </div>
-                        </button>
-                        <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center space-x-3">
-                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                                <span className="font-medium text-gray-900">Find Connections</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
