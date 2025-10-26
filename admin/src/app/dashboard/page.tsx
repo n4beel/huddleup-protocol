@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { eventsService, type Event } from '@/services/events.service';
 import EventCard from '@/components/EventCard';
+import SponsorEventModal from '@/components/SponsorEventModal';
 
 
 export default function Dashboard() {
@@ -13,6 +14,8 @@ export default function Dashboard() {
     const [pastSponsoredEvents, setPastSponsoredEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+    const [isSponsorModalOpen, setIsSponsorModalOpen] = useState(false);
 
     const { user, isAuthenticated } = useAuth();
 
@@ -50,8 +53,11 @@ export default function Dashboard() {
 
     // Event handlers
     const handleSponsorEvent = (eventId: string) => {
-        console.log('Sponsor event:', eventId);
-        // TODO: Implement sponsorship flow
+        const event = eventsNeedingSponsorship.find(e => e.id === eventId);
+        if (event) {
+            setSelectedEvent(event);
+            setIsSponsorModalOpen(true);
+        }
     };
 
     const handleViewDetails = (eventId: string) => {
@@ -206,6 +212,18 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Sponsor Event Modal */}
+            {selectedEvent && (
+                <SponsorEventModal
+                    isOpen={isSponsorModalOpen}
+                    onClose={() => {
+                        setIsSponsorModalOpen(false);
+                        setSelectedEvent(null);
+                    }}
+                    event={selectedEvent}
+                />
+            )}
         </div>
     );
 }

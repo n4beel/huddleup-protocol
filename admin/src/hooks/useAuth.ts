@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useWeb3AuthUser, useIdentityToken } from '@web3auth/modal/react';
 import { useAccount } from 'wagmi';
@@ -29,6 +29,9 @@ export function useAuth() {
     const { token: idToken, getIdentityToken } = useIdentityToken();
     const { address } = useAccount();
 
+    // Refs to track if operations are in progress
+    const isVerifyingRef = useRef(false);
+    const isExternalAuthRef = useRef(false);
 
     const [authState, setAuthState] = useState<AuthState>({
         isAuthenticated: false,
@@ -51,11 +54,13 @@ export function useAuth() {
             return;
         }
 
-        // Prevent multiple simultaneous calls
-        if (authState.isLoading) {
+        // Prevent multiple simultaneous calls using ref
+        if (isVerifyingRef.current) {
+            console.log('Verification already in progress, skipping');
             return;
         }
 
+        isVerifyingRef.current = true;
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
         try {
@@ -69,15 +74,30 @@ export function useAuth() {
                     error: null,
                 });
 
-                // Redirect to dashboard if user is on home page
-                if (pathname === '/') {
-                    router.push('/dashboard');
-                }
+                // Don't redirect here - let RouteProtection handle it
+                // This prevents redirect loops
             } else {
                 throw new Error('JWT verification failed');
             }
         } catch (error) {
             console.error('Backend verification failed:', error);
+
+            // If it's a network error or server error, try external wallet authentication
+            if (error instanceof Error && (
+                error.message.includes('Failed to fetch') ||
+                error.message.includes('Internal server error') ||
+                error.message.includes('500') ||
+                error.message.includes('NetworkError')
+            )) {
+                console.log('Backend unavailable, falling back to external wallet authentication');
+                // Set a flag to trigger external wallet auth in the main effect
+                setAuthState(prev => ({
+                    ...prev,
+                    isLoading: false,
+                    error: 'Backend unavailable, using external wallet authentication',
+                }));
+                return;
+            }
 
             // If verification fails, clear auth state
             setAuthState({
@@ -92,8 +112,10 @@ export function useAuth() {
                 // Trigger wallet disconnection
                 window.location.reload(); // Simple approach for now
             }
+        } finally {
+            isVerifyingRef.current = false;
         }
-    }, [idToken, address, authState.isLoading]);
+    }, [idToken, address]);
 
     /**
      * Refresh user session
@@ -114,6 +136,13 @@ export function useAuth() {
      * Authenticate external wallet without JWT
      */
     const authenticateExternalWallet = useCallback(async (walletAddress: string) => {
+        // Prevent multiple simultaneous calls
+        if (isExternalAuthRef.current) {
+            console.log('External wallet authentication already in progress, skipping');
+            return;
+        }
+
+        isExternalAuthRef.current = true;
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
         try {
@@ -136,10 +165,8 @@ export function useAuth() {
                 error: null,
             });
 
-            // Redirect to dashboard if user is on home page
-            if (pathname === '/') {
-                router.push('/dashboard');
-            }
+            // Don't redirect here - let RouteProtection handle it
+            // This prevents redirect loops
 
         } catch (error) {
             console.error('External wallet authentication failed:', error);
@@ -149,6 +176,8 @@ export function useAuth() {
                 user: null,
                 error: error instanceof Error ? error.message : 'External wallet authentication failed',
             });
+        } finally {
+            isExternalAuthRef.current = false;
         }
     }, []);
 
@@ -168,8 +197,8 @@ export function useAuth() {
 
     // Effect to verify with backend when wallet connects
     useEffect(() => {
-        // Prevent multiple simultaneous calls
-        if (authState.isLoading) {
+        // Prevent multiple simultaneous calls by checking if we're already authenticated
+        if (authState.isAuthenticated) {
             return;
         }
 
@@ -197,15 +226,15 @@ export function useAuth() {
                 console.error('Failed to get identity token:', error);
                 authenticateExternalWallet(address);
             });
-        } else if (idToken && address) {
+        } else if (idToken && address && !authState.isAuthenticated) {
             // For external wallets, web3AuthUserInfo might be null, so we only require idToken and address
             console.log('Have both token and address, verifying with backend');
             verifyWithBackend();
-        } else if (address && !idToken) {
+        } else if (address && !idToken && !authState.isAuthenticated) {
             // For external wallets without JWT, try to authenticate with just the wallet address
             console.log('Have address but no token, authenticating external wallet');
             authenticateExternalWallet(address);
-        } else {
+        } else if (!address && !idToken) {
             // Clear auth state when wallet disconnects
             console.log('No address or token, clearing auth state');
             setAuthState({
@@ -215,7 +244,16 @@ export function useAuth() {
                 error: null,
             });
         }
-    }, [idToken, address]); // Removed function dependencies to prevent multiple calls
+    }, [idToken, address, authState.isAuthenticated, authenticateExternalWallet, verifyWithBackend, getIdentityToken]);
+
+    // Effect to handle backend fallback when verification fails
+    useEffect(() => {
+        // If backend verification failed, fallback to external wallet auth
+        if (address && authState.error && authState.error.includes('Backend unavailable') && !authState.isAuthenticated) {
+            console.log('Backend unavailable, using external wallet authentication');
+            authenticateExternalWallet(address);
+        }
+    }, [address, authState.error, authState.isAuthenticated, authenticateExternalWallet]);
 
     // Effect to refresh session periodically
     useEffect(() => {

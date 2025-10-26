@@ -9,7 +9,7 @@ export class Web3Service implements OnModuleInit {
     private readonly contractAddress = process.env.HUDDLEUP_CONTRACT_ADDRESS as string;
     private readonly contractABI = HUDDLEUP_ABI;
     private readonly rpcUrl = `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`
-    private readonly shouldProcessEvents = false;
+    private readonly shouldProcessEvents = true;
 
     async onModuleInit() {
         this.logger.log('Connecting to Sepolia via WebSocket...');

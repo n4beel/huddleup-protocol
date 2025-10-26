@@ -11,6 +11,7 @@ export class Event {
 
     // Organizer fields
     organizerId: string;
+    organizerWalletAddress: string;
     fundingRequired: number; // Amount in USD
     airdropAmount: number; // Per participant amount in USD
 

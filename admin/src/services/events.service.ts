@@ -8,11 +8,11 @@ interface Event {
     id: string;
     title: string;
     description: string;
-    eventDate: string;
+    eventDate: string; // ISO string format
     location: string;
     eventType: string;
-    fundingRequired: number;
-    airdropAmount: number;
+    fundingRequired: number; // Amount in USD
+    airdropAmount: number; // Per participant amount in USD
     currentParticipants: number;
     maxParticipants: number;
     status: 'draft' | 'funded' | 'completed' | 'cancelled';
@@ -20,8 +20,9 @@ interface Event {
     organizerName: string;
     sponsorName?: string;
     currentFunding?: number;
-    onchainEventId?: string;
-    organizerId?: string;
+    onchainEventId: string; // Required for smart contract
+    organizerId: string;
+    organizerWalletAddress: string; // Required for smart contract
     createdAt?: string;
     updatedAt?: string;
 }

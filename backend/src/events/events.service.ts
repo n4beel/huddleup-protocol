@@ -37,6 +37,11 @@ export class EventsService {
             throw new BadRequestException('Funding required must be greater than airdrop amount');
         }
 
+        const user = await this.usersService.findById(createEventDto.organizerId);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
         const query = `
             CREATE (e:Event {
                 id: $id,
@@ -47,6 +52,7 @@ export class EventsService {
                 eventType: $eventType,
                 status: 'draft',
                 organizerId: $organizerId,
+                organizerWalletAddress: $organizerWalletAddress,
                 fundingRequired: $fundingRequired,
                 airdropAmount: $airdropAmount,
                 maxParticipants: $maxParticipants,
@@ -66,7 +72,8 @@ export class EventsService {
             eventDate: createEventDto.eventDate,
             location: createEventDto.location,
             eventType: createEventDto.eventType,
-            organizerId: createEventDto.organizerId,
+            organizerId: user.id,
+            organizerWalletAddress: user.walletAddress,
             fundingRequired: createEventDto.fundingRequired,
             airdropAmount: createEventDto.airdropAmount,
             maxParticipants,
@@ -76,7 +83,7 @@ export class EventsService {
         };
 
         const result = await this.neo4jService.runWriteRelationQuery(
-            `MATCH (u:User {id: $organizerId})
+            `MATCH (u:User {walletAddress: $organizerWalletAddress})
              CREATE (u)-[:ORGANIZER_OF {createdAt: datetime($createdAt)}]->(e:Event {
                 id: $id,
                 onchainEventId: $onchainEventId,
@@ -87,6 +94,7 @@ export class EventsService {
                 eventType: $eventType,
                 status: 'draft',
                 organizerId: $organizerId,
+                organizerWalletAddress: $organizerWalletAddress,
                 fundingRequired: $fundingRequired,
                 airdropAmount: $airdropAmount,
                 maxParticipants: $maxParticipants,
@@ -741,6 +749,7 @@ export class EventsService {
             status: node.properties.status,
             bannerImage: node.properties.bannerImage,
             organizerId: node.properties.organizerId,
+            organizerWalletAddress: node.properties.organizerWalletAddress,
             fundingRequired: this.convertNeo4jInteger(node.properties.fundingRequired),
             airdropAmount: this.convertNeo4jInteger(node.properties.airdropAmount),
             maxParticipants: this.convertNeo4jInteger(node.properties.maxParticipants),

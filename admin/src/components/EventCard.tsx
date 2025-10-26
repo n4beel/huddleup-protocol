@@ -1,5 +1,7 @@
 'use client';
 
+import { CloudinaryPresets } from '@/utils/cloudinary';
+
 interface EventCardProps {
     event: {
         id: string;
@@ -17,8 +19,9 @@ interface EventCardProps {
         organizerName: string;
         sponsorName?: string;
         currentFunding?: number;
-        onchainEventId?: string;
-        organizerId?: string;
+        onchainEventId: string;
+        organizerId: string;
+        organizerWalletAddress: string;
         createdAt?: string;
         updatedAt?: string;
     };
@@ -98,7 +101,7 @@ export default function EventCard({
                 <div className="w-32 h-32 flex-shrink-0">
                     {event.bannerImage ? (
                         <img
-                            src={event.bannerImage}
+                            src={CloudinaryPresets.eventCardThumbnail(event.bannerImage)}
                             alt={event.title}
                             className="w-full h-full object-cover"
                         />
