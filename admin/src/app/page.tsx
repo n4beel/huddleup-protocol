@@ -1,6 +1,25 @@
+'use client';
+
 import WalletConnection from '@/components/WalletConnection';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Home() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Don't show home page content if user is authenticated
+  if (isAuthenticated) {
+    return null;
+  }
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-12">

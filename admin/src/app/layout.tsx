@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Web3AuthWrapper from "@/components/Web3AuthWrapper";
+import RouteProtection from "@/components/RouteProtection";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,12 +21,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Web3AuthWrapper>
-          <div className="min-h-screen bg-gray-50">
-            <Navigation />
-            <main className="container mx-auto px-4 py-8">
-              {children}
-            </main>
-          </div>
+          <RouteProtection>
+            <div className="min-h-screen bg-gray-50">
+              <Navigation />
+              <main className="container mx-auto px-4 py-8">
+                {children}
+              </main>
+            </div>
+          </RouteProtection>
         </Web3AuthWrapper>
       </body>
     </html>

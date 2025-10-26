@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useWeb3AuthUser, useIdentityToken } from '@web3auth/modal/react';
 import { useAccount } from 'wagmi';
 import { authService, type UserInfo } from '@/services/auth.service';
@@ -22,6 +23,8 @@ interface AuthState {
  * 4. Handles errors and disconnection
  */
 export function useAuth() {
+    const router = useRouter();
+    const pathname = usePathname();
     const { userInfo: web3AuthUserInfo } = useWeb3AuthUser();
     const { token: idToken, getIdentityToken } = useIdentityToken();
     const { address } = useAccount();
@@ -65,6 +68,11 @@ export function useAuth() {
                     user: response.user,
                     error: null,
                 });
+
+                // Redirect to dashboard if user is on home page
+                if (pathname === '/') {
+                    router.push('/dashboard');
+                }
             } else {
                 throw new Error('JWT verification failed');
             }
@@ -127,6 +135,11 @@ export function useAuth() {
                 user: mockUser,
                 error: null,
             });
+
+            // Redirect to dashboard if user is on home page
+            if (pathname === '/') {
+                router.push('/dashboard');
+            }
 
         } catch (error) {
             console.error('External wallet authentication failed:', error);
