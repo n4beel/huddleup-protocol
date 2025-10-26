@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-interface User {
+export interface User {
   address?: string;
   [key: string]: any;
 }

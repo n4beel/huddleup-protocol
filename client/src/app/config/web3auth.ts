@@ -4,8 +4,23 @@ import {
     WEB3AUTH_NETWORK,
     MFA_LEVELS,
     type Web3AuthOptions,
+    CHAIN_NAMESPACES
 } from '@web3auth/modal';
 
+
+
+
+const SEPOLIA_CONFIG = {
+    chainNamespace: CHAIN_NAMESPACES.EIP155,
+    // Sepolia Chain ID in Hex
+    chainId: '0xaa36a7', 
+    rpcTarget: 'https://rpc.sepolia.org/', 
+    displayName: 'Sepolia Testnet',
+    blockExplorerUrl: 'https://sepolia.etherscan.io',
+    ticker: 'ETH',
+    tickerName: 'Sepolia ETH',
+    logo:''
+};
 /**
  * Web3Auth Configuration
  * 
@@ -32,7 +47,9 @@ function getNetwork() {
     switch (network) {
         case 'SAPPHIRE_MAINNET':
             return WEB3AUTH_NETWORK.SAPPHIRE_MAINNET;
-        case 'SAPPHIRE_DEVNET':
+        case 'sapphire_devnet':
+            return WEB3AUTH_NETWORK.SAPPHIRE_DEVNET;
+
         default:
             // Default to devnet for development
             return WEB3AUTH_NETWORK.SAPPHIRE_DEVNET;
@@ -61,6 +78,7 @@ validateEnvironment();
 const web3AuthOptions: Web3AuthOptions = {
     clientId: process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!,
     web3AuthNetwork: getNetwork(),
+    chains: [SEPOLIA_CONFIG],
     enableLogging: process.env.NODE_ENV === 'development',
     modalConfig: {
         connectors: {
@@ -81,6 +99,7 @@ const web3AuthOptions: Web3AuthOptions = {
     mfaLevel: getMFALevel(),
     // Add session management
     sessionTime: 24 * 60 * 60, // 24 hours in seconds
+    
 };
 
 const web3AuthConfig: Web3AuthContextConfig = {

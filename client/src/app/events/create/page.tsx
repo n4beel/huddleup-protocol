@@ -39,7 +39,7 @@ const CreateEvent = () => {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [step, setStep] = useState<number>(3);
+  const [step, setStep] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
 

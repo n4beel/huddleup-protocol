@@ -29,7 +29,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, past = false }) => {
   const imageSrc =
     event.bannerImage && event.bannerImage.trim() !== ""
       ? event.bannerImage
-      : "/assets/placeholder-event.jpg"; // Add a local placeholder image
+      : "/assets/banner.png"; // Add a local placeholder image
 
   return (
     <div
@@ -40,7 +40,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, past = false }) => {
         {event ? (
           <Image
             src={imageSrc}
-              alt={event.title?.trim() || "Event banner image"}
+            alt={event.title?.trim() || "Event banner image"}
             width={100}
             height={100}
             className="rounded-md object-cover"

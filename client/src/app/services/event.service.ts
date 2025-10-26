@@ -31,14 +31,18 @@ export const getPastEvents = async (): Promise<Event[]> => {
 
 
 
-export const getEventDetail = async (id: string): Promise<Event | null> => {
-    try {
-        const response = await axios.get<Event>(`${BASE_URL}/events/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching event details:", error);
-        return null; // ✅ ensures function always returns a value
-    }
+export const getEventDetail = async ({ id, userId }: { id: string; userId?: string }): Promise<Event | null> => {
+  try {
+    const url = userId
+      ? `${BASE_URL}/events/${id}?userId=${encodeURIComponent(userId)}`
+      : `${BASE_URL}/events/${id}`;
+
+    const response = await axios.get<Event>(url);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching event details:", error);
+    return null; // ✅ ensures function always returns a value
+  }
 };
 
 export const createEvent = async (data: {
@@ -63,24 +67,50 @@ export const createEvent = async (data: {
 };
 
 
-export const uploadImage = async (file: File): Promise<{urls:string[]}> => {
-  try {
-    const formData = new FormData();
+export const uploadImage = async (file: File): Promise<{ urls: string[] }> => {
+    try {
+        const formData = new FormData();
 
-    // ⚠️ Change "image" to match your backend field name
-    // If your backend expects "file", keep it as is.
-    formData.append("images", file);
+        // ⚠️ Change "image" to match your backend field name
+        // If your backend expects "file", keep it as is.
+        formData.append("images", file);
 
-    const response = await axios.post(`${BASE_URL}/upload/images`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+        const response = await axios.post(`${BASE_URL}/upload/images`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
 
-    // Assuming your backend returns { url: "https://..." }
-    return response.data;
-  } catch (error: any) {
-    console.error("Image upload failed:", error.response?.data || error);
-    throw new Error(error.response?.data?.message || "Failed to upload image");
-  }
+        // Assuming your backend returns { url: "https://..." }
+        return response.data;
+    } catch (error: any) {
+        console.error("Image upload failed:", error.response?.data || error);
+        throw new Error(error.response?.data?.message || "Failed to upload image");
+    }
+};
+
+export const getEventByOrganizer = async (userId: string, isActive: boolean) => {
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/events/organized-by/${userId}/?isActive=${isActive}`
+        );
+        const events = response.data;
+        return events;
+    } catch (error) {
+        console.error("Error fetching organizer events:", error);
+        return [];
+    }
+};
+
+export const getEventByParticipant = async (userId: string, isActive: boolean) => {
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/events/participating/${userId}?status=funded&isActive=${isActive}`
+        );
+        const events = response.data;
+        return events;
+    } catch (error) {
+        console.error("Error fetching participant events:", error);
+        return [];
+    }
 };

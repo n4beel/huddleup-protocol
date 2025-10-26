@@ -20,4 +20,5 @@ export interface Event {
     sponsorId?: string;
     sponsorAmount?: number;
     sponsorFundedAt?: string;
+    relationship? : string
 }

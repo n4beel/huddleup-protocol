@@ -41,6 +41,8 @@ export default function WalletConnection({ className, children }: WalletConnecti
     }
   }, [isConnected, address, idToken, router]);
 
+
+  
   const handleConnect = async () => {
     try {
       await connect();
