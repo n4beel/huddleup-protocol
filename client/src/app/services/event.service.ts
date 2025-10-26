@@ -16,6 +16,17 @@ export const getLatestEvents = async (): Promise<Event[]> => {
 };
 
 
+export const getAllEvents = async (): Promise<Event[]> => {
+    try {
+        const response = await axios.get<Event[]>(`${BASE_URL}/events?status=funded&isActive=true`);
+        const events = response.data;
+        return events;
+    } catch (error) {
+        console.error("Error fetching latest events:", error);
+        return [];
+    }
+};
+
 export const getPastEvents = async (): Promise<Event[]> => {
     try {
         const response = await axios.get<Event[]>(`${BASE_URL}/events?status=funded&isActive=false`);

@@ -1,31 +1,43 @@
 "use client";
 
+import { bytesToHex, padHex } from 'viem/utils';
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { useAccount, useWriteContract } from 'wagmi'
-
-import { Calendar, Clock, DollarSign, MapPin, Users } from "lucide-react";
+import { useAccount, useWriteContract, useChainId, useSwitchChain, useConnect } from 'wagmi' // Added useConnect, useSwitchChain
+import { Calendar, Clock, DollarSign, MapPin, Users, Plug } from "lucide-react"; // Added Plug icon
 import AppLayout from "@/app/components/common/AppLayout";
 import { Button } from "@/app/components/common/Button";
 import { getEventDetail } from "@/app/services/event.service";
 import { Event } from "@/app/types";
 import { Spinner } from "@/app/components/common/Spinner";
 import { useUserStore } from "@/app/store/useUserStore";
-import { HUDDLE_ABI, HUDDLE_CONTRACT } from "@/app/config";
-import { useChainId } from 'wagmi';
+// Assuming these are correct (e.g., 11155111 for Sepolia)
+import { REQUIRED_CHAIN_ID } from "@/app/config"; 
+import { BaseError } from "viem"; // For better error handling from wagmi
+import { HUDDLEUP_ABI, HUDDLEUP_CONTRACT_ADDRESS } from "@/app/abis/huddle";
+
 
 const EventDetail = () => {
-    const { writeContract, isPending, isSuccess, error } = useWriteContract()
-    const { address } = useAccount();
-      const chainId = useChainId()
 
+    const { writeContract, isPending, isSuccess, error , writeContractAsync} = useWriteContract();
+    const { address, isConnected } = useAccount(); // Check connection status
+    const chainId = useChainId();
+    const { switchChain } = useSwitchChain(); // For switching networks
+    const { connect, connectors } = useConnect(); // For connecting a wallet
 
+    // 2. Component/App States
     const { user } = useUserStore();
-    const { id } = useParams();
+    const { id } = useParams(); // Should be the string/hex event ID
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const isReadyToInteract = isConnected && chainId === REQUIRED_CHAIN_ID;
+    const isWrongChain = isConnected && chainId !== REQUIRED_CHAIN_ID;
+
+    const huddleContractAddress = HUDDLEUP_CONTRACT_ADDRESS as `0x${string}`;
+
+    // 3. Data Fetching
     useEffect(() => {
         if (!id) return;
 
@@ -34,7 +46,7 @@ const EventDetail = () => {
                 setLoading(true);
                 const data = await getEventDetail({
                     id,
-                    ...(user?.id && { userId: user.id }), // ✅ only include userId if it exists
+                    ...(user?.id && { userId: user.id }),
                 });
                 setEvent(data);
             } catch (error) {
@@ -47,7 +59,116 @@ const EventDetail = () => {
         fetchEvent();
     }, [id, user?.id]);
 
+    // 4. Contract Interaction
+    const handleJoin = async () => {
+         if (isPending || !isReadyToInteract || !event) return;
+            let onchainEventIdBytes32: `0x${string}`;
+            if (event.onchainEventId.startsWith('0x')) {
+                // Already a hex string, pad to 32 bytes (64 hex chars)
+                onchainEventIdBytes32 = `0x${event.onchainEventId.slice(2).padStart(64, '0')}` as `0x${string}`;
+            } else {
+                // Convert string to bytes32
+                const bytes = new TextEncoder().encode(event.onchainEventId);
+                const paddedBytes = new Uint8Array(32);
+                paddedBytes.set(bytes.slice(0, 32));
+                onchainEventIdBytes32 = bytesToHex(paddedBytes) as `0x${string}`;
+            }
+
+
+        try {
+            const hash = await writeContractAsync({
+                abi: HUDDLEUP_ABI,
+                address: huddleContractAddress,
+                functionName: 'joinEvent',
+                args: [onchainEventIdBytes32], // ✅ type assertion
+                chainId: REQUIRED_CHAIN_ID, // Good practice to include chainId
+            })
+
+
+            console.log('Transaction sent! isPending is now true.', hash)
+        } catch (err) {
+            // Error is usually handled by useWriteContract's `error` state,
+            // but this catch handles sync errors or failed setup.
+            console.error('Error in handleJoin setup:', err)
+        }
+    }
+
+    // 5. Conditional Button Rendering
+    const renderButton = () => {
+        const isOrganizer = event?.relationship === "ORGANIZER_OF";
+        const isParticipant = event?.relationship === "PARTICIPANT_OF";
+        const isNoRelationship = event?.relationship === "NO_RELATIONSHIP";
+
+        if (isOrganizer) {
+            // Organizer button logic (Verify)
+            const today = new Date();
+            const eventDate = new Date(event.eventDate);
+            const isToday =
+                eventDate.getFullYear() === today.getFullYear() &&
+                eventDate.getMonth() === today.getMonth() &&
+                eventDate.getDate() === today.getDate();
+
+            return (
+                <Button 
+                    variant="dark" 
+                    size="lg" 
+                    disabled={!isToday} 
+                    className="mt-4 w-full lg:w-auto"
+                >
+                    Verify {isToday ? '' : '(Not Today)'}
+                </Button>
+            );
+        }
+
+        if (isNoRelationship) {
+            // Join button logic (requires wallet connection and correct chain)
+            if (!isConnected) {
+                 return (
+                    <Button 
+                        onClick={() => connect({ connector: connectors[0] })}
+                        variant="dark" 
+                        size="lg" 
+                        className="mt-4 w-full lg:w-auto"
+                    >
+                        <Plug size={20} className="mr-2" /> Connect Wallet to Join
+                    </Button>
+                );
+            }
+
+            if (isWrongChain) {
+                return (
+                    <Button 
+                        onClick={() => switchChain({ chainId: REQUIRED_CHAIN_ID })}
+                        variant="dark" 
+                        size="lg" 
+                        className="mt-4 w-full lg:w-auto"
+                    >
+                        Switch to Correct Network Sepolia
+                    </Button>
+                );
+            }
+            
+            // Ready to Join
+            return (
+                <Button 
+                    onClick={handleJoin} 
+                    variant="dark" 
+                    size="lg" 
+                    className="mt-4 w-full lg:w-auto"
+                    disabled={isPending || isSuccess} // Disable during transaction
+                >
+                    {isPending ? <Spinner/> : 'Join'}
+                </Button>
+            );
+        }
+
+        // isParticipant_OF or other relationship → show nothing
+        return null;
+    };
+
+    // 6. Loading and Not Found Handlers
     if (loading) {
+        // ... (loading state remains the same)
         return (
             <AppLayout>
                 <main className="w-full min-h-[calc(100vh-220px)] flex items-center justify-center">
@@ -58,6 +179,7 @@ const EventDetail = () => {
     }
 
     if (!event) {
+        // ... (not found state remains the same)
         return (
             <AppLayout>
                 <main className="w-full min-h-[calc(100vh-220px)] flex items-center justify-center">
@@ -67,6 +189,7 @@ const EventDetail = () => {
         );
     }
 
+    // 7. Render UI
     const formattedDate = new Date(event.eventDate).toLocaleDateString("en-US", {
         day: "numeric",
         month: "short",
@@ -76,61 +199,14 @@ const EventDetail = () => {
     const today = new Date();
     const eventDate = new Date(event.eventDate);
 
-    const isToday =
-        eventDate.getFullYear() === today.getFullYear() &&
-        eventDate.getMonth() === today.getMonth() &&
-        eventDate.getDate() === today.getDate();
 
-    // ✅ Determine which button (if any) to show
-    const renderButton = () => {
-        if (event.relationship === "NO_RELATIONSHIP") {
-            return (
-                <Button onClick={handleJoin} variant="dark" size="lg" className="mt-4 w-full lg:w-auto">
-                    Join
-                </Button>
-            );
-        }
-
-        if (event.relationship === "ORGANIZER_OF" && isToday) {
-            return (
-                <Button variant="dark" size="lg" className="mt-4 w-full lg:w-auto">
-                    Verify
-                </Button>
-            );
-        } else if (event.relationship === "ORGANIZER_OF" && !isToday) {
-            return (
-                <Button variant="dark" size="lg" disabled className="mt-4 w-full lg:w-auto">
-                    Verify
-                </Button>
-            );
-        }
-
-        // PARTICIPANT_OF → show nothing
-        return null;
-    };
-
-
-
-
-    const handleJoin = async () => {
-        console.log(address , chainId)
-        // try {
-        //     await writeContract({
-        //         abi: HUDDLE_ABI,
-        //         address: HUDDLE_CONTRACT,
-        //         functionName: 'joinEvent',
-        //         args: [id],
-        //     })
-        //     console.log('Transaction sent!')
-        // } catch (err) {
-        //     console.error('Error:', err)
-        // }
-    }
 
     return (
         <AppLayout>
             <main className="w-full min-h-[calc(100vh-220px)] overflow-y-scroll relative overflow-hidden p-4">
+                {/* Event Details Section */}
                 <div className="w-full relative grid grid-cols-12 gap-4">
+                    {/* ... (Image and detail info) ... */}
                     <div className="col-span-12 lg:col-span-5">
                         <span className="absolute top-2 left-2 px-4 py-2 text-base rounded-xl border text-primary bg-white min-w-[150px]">
                             {event.eventType}
@@ -184,6 +260,7 @@ const EventDetail = () => {
 
                 <hr className="my-6 border-b border-gray-200" />
 
+                {/* Footer/Action Section */}
                 <div className="w-full my-4 flex flex-col lg:flex-row items-start gap-4 lg:items-center justify-between">
                     <div className="flex items-start gap-4">
                         <Image
@@ -199,9 +276,20 @@ const EventDetail = () => {
                         </div>
                     </div>
 
-                    {/* ✅ Conditionally render Join / Verify / nothing */}
                     {renderButton()}
                 </div>
+
+                {/* Transaction Feedback */}
+                {isSuccess && (
+                    <p className="text-green-600 mt-4 text-center p-2 bg-green-100 rounded-md">
+                        ✅ Transaction successful! You have joined the event.
+                    </p>
+                )}
+                {error && (
+                    <p className="text-red-600 mt-4 text-center p-2 bg-red-100 rounded-md">
+                        ❌ Transaction failed: {(error as BaseError).shortMessage || error.message}
+                    </p>
+                )}
             </main>
         </AppLayout>
     );

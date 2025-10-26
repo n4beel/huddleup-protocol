@@ -7,24 +7,25 @@ import {
     CHAIN_NAMESPACES
 } from '@web3auth/modal';
 
-
-
-
+// Sepolia Testnet Configuration
+// NOTE: Your contract is deployed on Sepolia, so users will need Sepolia ETH for gas
+// Get test ETH from: https://sepoliafaucet.com/ or https://faucets.chain.link/sepolia
 const SEPOLIA_CONFIG = {
     chainNamespace: CHAIN_NAMESPACES.EIP155,
     // Sepolia Chain ID in Hex
     chainId: '0xaa36a7', 
-    rpcTarget: 'https://rpc.sepolia.org/', 
+    rpcTarget: 'https://eth-sepolia.g.alchemy.com/v2/tOS66ZX_lYa8FUXoDioiY', 
     displayName: 'Sepolia Testnet',
     blockExplorerUrl: 'https://sepolia.etherscan.io',
     ticker: 'ETH',
     tickerName: 'Sepolia ETH',
-    logo:''
+    logo: ''
 };
+// ... (rest of the code is unchanged as it was already valid Web3Auth config)
+
 /**
  * Web3Auth Configuration
- * 
- * This configuration enables both social login (Google) and external wallet connections
+ * * This configuration enables both social login (Google) and external wallet connections
  * like MetaMask. The setup supports both development and production environments.
  */
 
@@ -47,11 +48,13 @@ function getNetwork() {
     switch (network) {
         case 'SAPPHIRE_MAINNET':
             return WEB3AUTH_NETWORK.SAPPHIRE_MAINNET;
+        case 'SAPPHIRE_DEVNET':
         case 'sapphire_devnet':
             return WEB3AUTH_NETWORK.SAPPHIRE_DEVNET;
 
         default:
-            // Default to devnet for development
+            // Default to sapphire devnet for development
+            // Users must have ETH on the chain to pay for gas
             return WEB3AUTH_NETWORK.SAPPHIRE_DEVNET;
     }
 }
@@ -79,6 +82,7 @@ const web3AuthOptions: Web3AuthOptions = {
     clientId: process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!,
     web3AuthNetwork: getNetwork(),
     chains: [SEPOLIA_CONFIG],
+    
     enableLogging: process.env.NODE_ENV === 'development',
     modalConfig: {
         connectors: {

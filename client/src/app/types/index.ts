@@ -11,6 +11,7 @@ export interface Event {
     organizerId: string;
     fundingRequired: number;
     airdropAmount: number;
+    onchainEventId:string;
     maxParticipants: number;
     currentParticipants: number;
     currentFunding: number;
