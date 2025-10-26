@@ -11,7 +11,7 @@ export interface Event {
     organizerId: string;
     fundingRequired: number;
     airdropAmount: number;
-    onchainEventId:string;
+    onchainEventId: string;
     maxParticipants: number;
     currentParticipants: number;
     currentFunding: number;
@@ -21,5 +21,6 @@ export interface Event {
     sponsorId?: string;
     sponsorAmount?: number;
     sponsorFundedAt?: string;
-    relationship? : string
+    relationship?: string;
+    qrCodeUrl?: string;
 }
