@@ -29,7 +29,7 @@ const TopBar = () => {
     return (
         <div className="w-full bg-white z-50 lg:max-w-5xl mx-auto flex items-center justify-between gap-4 p-4 border-b border-gray-100">
             <section className="flex items-center gap-2">
-                <Image src="/assets/logo.svg" alt="Logo" width={70} height={70} />
+                <Image src="/assets/logo.jpeg" alt="Logo" width={60} height={60} />
             </section>
 
             <section className="flex items-center gap-4">
