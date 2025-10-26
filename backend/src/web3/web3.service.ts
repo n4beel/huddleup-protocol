@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ethers } from 'ethers';
 import { HUDDLEUP_ABI } from './contract-abi';
+import { EventsService } from 'src/events/events.service';
 
 @Injectable()
 export class Web3Service implements OnModuleInit {
@@ -13,6 +14,8 @@ export class Web3Service implements OnModuleInit {
         this.logger.log('Connecting to Sepolia via WebSocket...');
         this.listenToAllEvents();
     }
+
+    constructor(private readonly eventsService: EventsService) { }
 
     private listenToAllEvents() {
         try {
@@ -29,16 +32,24 @@ export class Web3Service implements OnModuleInit {
 
             // Listen for *all* events emitted by the contract
             contract.on('*', (event) => {
-                this.logger.log('--- NEW EVENT RECEIVED ---');
+                try {
+                    this.logger.log('--- NEW EVENT RECEIVED ---');
 
-                this.logger.log(`Event Name: ${event.fragment.name}`);
-                this.logger.log(`Arguments: ${JSON.stringify(event.args)}`);
-                this.logger.log(`Block Number: ${event.log.blockNumber}`);
-                this.logger.log(`Transaction Hash: ${event.log.transactionHash}`);
+                    this.logger.log(`Event Name: ${event.fragment.name}`);
+                    this.logger.log(`Arguments: ${JSON.stringify(event.args, (key, value) =>
+                        typeof value === 'bigint' ? value.toString() : value
+                    )}`);
+                    this.logger.log(`Block Number: ${event.log.blockNumber}`);
+                    this.logger.log(`Transaction Hash: ${event.log.transactionHash}`);
 
-                // Add your business logic here
-                // e.g., save to database, send a notification, etc.
-                this.handleEvent(event);
+                    // Add your business logic here
+                    // e.g., save to database, send a notification, etc.
+                    this.handleEvent(event);
+                } catch (error) {
+                    this.logger.error('Error processing event:', error);
+                    this.logger.error('Event data:', JSON.stringify(event, (key, value) =>
+                        typeof value === 'bigint' ? value.toString() : value, 2));
+                }
             });
 
             // Handle provider errors (e.g., connection drops)
@@ -53,105 +64,115 @@ export class Web3Service implements OnModuleInit {
     }
 
     private handleEvent(event: ethers.EventLog) {
-        this.logger.log(`Handling event: ${event.fragment.name}`);
+        try {
+            this.logger.log(`Handling event: ${event.fragment.name}`);
 
-        switch (event.fragment.name) {
-            case 'EventCreated':
-                this.handleEventCreated(event);
-                break;
+            switch (event.fragment.name) {
+                case 'EventCreated':
+                    this.handleEventCreated(event);
+                    break;
 
-            case 'EventFunded':
-                this.handleEventFunded(event);
-                break;
+                case 'EventFunded':
+                    this.handleEventFunded(event);
+                    break;
 
-            case 'ParticipantJoined':
-                this.handleParticipantJoined(event);
-                break;
+                case 'ParticipantJoined':
+                    this.handleParticipantJoined(event);
+                    break;
 
-            case 'ParticipantLeft':
-                this.handleParticipantLeft(event);
-                break;
+                case 'ParticipantLeft':
+                    this.handleParticipantLeft(event);
+                    break;
 
-            case 'ParticipantVerified':
-                this.handleParticipantVerified(event);
-                break;
+                case 'ParticipantVerified':
+                    this.handleParticipantVerified(event);
+                    break;
 
-            case 'FundsWithdrawn':
-                this.handleFundsWithdrawn(event);
-                break;
+                case 'FundsWithdrawn':
+                    this.handleFundsWithdrawn(event);
+                    break;
 
-            case 'OwnershipTransferred':
-                this.handleOwnershipTransferred(event);
-                break;
-
-            default:
-                this.logger.warn(`Unhandled event type: ${event.fragment.name}`);
+                default:
+                    this.logger.warn(`Unhandled event type: ${event.fragment.name}`);
+            }
+        } catch (error) {
+            this.logger.error(`Error handling event ${event.fragment.name}:`, error);
         }
     }
 
     private handleEventCreated(event: ethers.EventLog) {
         const { onchainEventId, organizer, fundingRequired, airdropAmount, eventDate } = event.args;
 
+        // Normalize amounts: divide by 10^6 (assuming 6 decimal places for PYUSD)
+        const normalizedFundingRequired = Number(fundingRequired) / 1000000;
+        const normalizedAirdropAmount = Number(airdropAmount) / 1000000;
+
         this.logger.log(`EventCreated: ${onchainEventId} by ${organizer}`);
-        this.logger.log(`Funding Required: ${fundingRequired.toString()}`);
-        this.logger.log(`Airdrop Amount: ${airdropAmount.toString()}`);
+        this.logger.log(`Funding Required: ${normalizedFundingRequired}`);
+        this.logger.log(`Airdrop Amount: ${normalizedAirdropAmount}`);
         this.logger.log(`Event Date: ${new Date(Number(eventDate) * 1000)}`);
 
         // TODO: Update database with event creation
         // await this.eventsService.updateEventStatus(onchainEventId, 'created');
     }
 
-    private handleEventFunded(event: ethers.EventLog) {
-        const { eventId, sponsor, amount } = event.args;
+    private async handleEventFunded(event: ethers.EventLog) {
+        try {
+            const { eventId, sponsor, amount } = event.args;
 
-        this.logger.log(`EventFunded: ${eventId} by ${sponsor} with ${amount.toString()}`);
+            // Normalize amount: divide by 10^6 (assuming 6 decimal places for PYUSD)
+            const normalizedAmount = Number(amount) / 1000000;
 
-        // TODO: Update database with funding information
-        // await this.eventsService.updateEventStatus(eventId, 'funded');
+            this.logger.log(`EventFunded: ${eventId} by ${sponsor} with ${normalizedAmount}`);
+
+            await this.eventsService.fundEvent(eventId, {
+                sponsorWalletAddress: sponsor.toLowerCase(),
+                amount: normalizedAmount,
+            });
+        } catch (error) {
+            this.logger.error('Error in handleEventFunded:', error);
+        }
     }
 
-    private handleParticipantJoined(event: ethers.EventLog) {
+    private async handleParticipantJoined(event: ethers.EventLog) {
         const { eventId, participant } = event.args;
 
         this.logger.log(`ParticipantJoined: ${participant} to event ${eventId}`);
 
         // TODO: Update database with participant information
-        // await this.eventsService.addParticipant(eventId, participant);
+        await this.eventsService.participateInEvent(eventId, participant.toLowerCase());
     }
 
-    private handleParticipantLeft(event: ethers.EventLog) {
+    private async handleParticipantLeft(event: ethers.EventLog) {
         const { eventId, participant } = event.args;
 
         this.logger.log(`ParticipantLeft: ${participant} from event ${eventId}`);
 
         // TODO: Update database to mark participant as left
-        // await this.eventsService.removeParticipant(eventId, participant);
+        await this.eventsService.leaveEvent(eventId, participant.toLowerCase());
     }
 
     private handleParticipantVerified(event: ethers.EventLog) {
         const { eventId, participant, airdropAmount } = event.args;
 
-        this.logger.log(`ParticipantVerified: ${participant} for event ${eventId} with airdrop ${airdropAmount.toString()}`);
+        // Normalize amount: divide by 10^6 (assuming 6 decimal places for PYUSD)
+        const normalizedAirdropAmount = Number(airdropAmount) / 1000000;
+
+        this.logger.log(`ParticipantVerified: ${participant} for event ${eventId} with airdrop ${normalizedAirdropAmount}`);
 
         // TODO: Update database with verification and airdrop information
-        // await this.eventsService.verifyParticipant(eventId, participant, airdropAmount);
+        // await this.eventsService.verifyParticipant(eventId, participant, normalizedAirdropAmount);
     }
 
     private handleFundsWithdrawn(event: ethers.EventLog) {
         const { eventId, sponsor, amount } = event.args;
 
-        this.logger.log(`FundsWithdrawn: ${amount.toString()} by ${sponsor} for event ${eventId}`);
+        // Normalize amount: divide by 10^6 (assuming 6 decimal places for PYUSD)
+        const normalizedAmount = Number(amount) / 1000000;
+
+        this.logger.log(`FundsWithdrawn: ${normalizedAmount} by ${sponsor} for event ${eventId}`);
 
         // TODO: Update database with withdrawal information
-        // await this.eventsService.recordWithdrawal(eventId, sponsor, amount);
-    }
-
-    private handleOwnershipTransferred(event: ethers.EventLog) {
-        const { previousOwner, newOwner } = event.args;
-
-        this.logger.log(`OwnershipTransferred: from ${previousOwner} to ${newOwner}`);
-
-        // TODO: Update database with ownership change
-        // await this.eventsService.updateOwnership(previousOwner, newOwner);
+        // await this.eventsService.recordWithdrawal(eventId, sponsor, normalizedAmount);
     }
 }

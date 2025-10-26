@@ -163,49 +163,49 @@ export class EventsController {
         return this.eventsService.deleteEvent(id, user.id);
     }
 
-    @Post(':id/participate')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Participate in an event' })
-    @ApiParam({ name: 'id', description: 'Event ID' })
-    @ApiBearerAuth()
-    @ApiResponse({ status: 200, description: 'Successfully joined the event' })
-    @ApiResponse({ status: 400, description: 'Bad request - event not funded or full' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    @ApiResponse({ status: 404, description: 'Event not found' })
-    async participateInEvent(@Param('id') eventId: string, @Req() req: any): Promise<{ message: string }> {
-        const user: AuthenticatedUser = req.user;
-        await this.eventsService.participateInEvent(eventId, user.id);
-        return { message: 'Successfully joined the event' };
-    }
+    // @Post(':id/participate')
+    // @HttpCode(HttpStatus.OK)
+    // @ApiOperation({ summary: 'Participate in an event' })
+    // @ApiParam({ name: 'id', description: 'Event ID' })
+    // @ApiBearerAuth()
+    // @ApiResponse({ status: 200, description: 'Successfully joined the event' })
+    // @ApiResponse({ status: 400, description: 'Bad request - event not funded or full' })
+    // @ApiResponse({ status: 401, description: 'Unauthorized' })
+    // @ApiResponse({ status: 404, description: 'Event not found' })
+    // async participateInEvent(@Param('id') eventId: string, @Req() req: any): Promise<{ message: string }> {
+    //     const user: AuthenticatedUser = req.user;
+    //     await this.eventsService.participateInEvent(eventId, user.id);
+    //     return { message: 'Successfully joined the event' };
+    // }
 
-    @Delete(':id/participate')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Leave an event' })
-    @ApiParam({ name: 'id', description: 'Event ID' })
-    @ApiBearerAuth()
-    @ApiResponse({ status: 200, description: 'Successfully left the event' })
-    @ApiResponse({ status: 400, description: 'Bad request - not participating' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    @ApiResponse({ status: 404, description: 'Event not found' })
-    async leaveEvent(@Param('id') eventId: string, @Req() req: any): Promise<{ message: string }> {
-        const user: AuthenticatedUser = req.user;
-        await this.eventsService.leaveEvent(eventId, user.id);
-        return { message: 'Successfully left the event' };
-    }
+    // @Delete(':id/participate')
+    // @HttpCode(HttpStatus.OK)
+    // @ApiOperation({ summary: 'Leave an event' })
+    // @ApiParam({ name: 'id', description: 'Event ID' })
+    // @ApiBearerAuth()
+    // @ApiResponse({ status: 200, description: 'Successfully left the event' })
+    // @ApiResponse({ status: 400, description: 'Bad request - not participating' })
+    // @ApiResponse({ status: 401, description: 'Unauthorized' })
+    // @ApiResponse({ status: 404, description: 'Event not found' })
+    // async leaveEvent(@Param('id') eventId: string, @Req() req: any): Promise<{ message: string }> {
+    //     const user: AuthenticatedUser = req.user;
+    //     await this.eventsService.leaveEvent(eventId, user.id);
+    //     return { message: 'Successfully left the event' };
+    // }
 
-    @Post(':id/fund')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Fund an event' })
-    @ApiParam({ name: 'id', description: 'Event ID' })
-    @ApiResponse({ status: 200, description: 'Event funded successfully', type: Event })
-    @ApiResponse({ status: 400, description: 'Bad request - invalid funding amount or event already funded' })
-    @ApiResponse({ status: 404, description: 'Event not found' })
-    async fundEvent(
-        @Param('id') eventId: string,
-        @Body() fundEventDto: FundEventDto
-    ): Promise<Event> {
-        return this.eventsService.fundEvent(eventId, fundEventDto);
-    }
+    // @Post(':id/fund')
+    // @HttpCode(HttpStatus.OK)
+    // @ApiOperation({ summary: 'Fund an event' })
+    // @ApiParam({ name: 'id', description: 'Event ID' })
+    // @ApiResponse({ status: 200, description: 'Event funded successfully', type: Event })
+    // @ApiResponse({ status: 400, description: 'Bad request - invalid funding amount or event already funded' })
+    // @ApiResponse({ status: 404, description: 'Event not found' })
+    // async fundEvent(
+    //     @Param('id') eventId: string,
+    //     @Body() fundEventDto: FundEventDto
+    // ): Promise<Event> {
+    //     return this.eventsService.fundEvent(eventId, fundEventDto);
+    // }
 
     @Get(':id/participants')
     @ApiOperation({ summary: 'Get event participants' })

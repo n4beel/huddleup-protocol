@@ -62,6 +62,6 @@ export interface EventParticipationDto {
 }
 
 export interface FundEventDto {
-    sponsorId: string;
+    sponsorWalletAddress: string;
     amount: number;
 }

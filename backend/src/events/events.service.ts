@@ -279,6 +279,24 @@ export class EventsService {
     }
 
     /**
+     * Get event by onchain event ID
+     */
+    async findByOnchainEventId(onchainEventId: string): Promise<Event | null> {
+        const query = `
+            MATCH (e:Event {onchainEventId: $onchainEventId})
+            RETURN e
+        `;
+
+        const result = await this.neo4jService.runQuery(query, { onchainEventId });
+
+        if (result.length === 0) {
+            return null;
+        }
+
+        return this.mapNeo4jNodeToEvent(result[0].e);
+    }
+
+    /**
      * Update event (only if draft status)
      */
     async updateEvent(id: string, updateEventDto: UpdateEventDto, userId: string): Promise<Event> {
@@ -400,8 +418,8 @@ export class EventsService {
     /**
      * Participate in an event
      */
-    async participateInEvent(eventId: string, userId: string): Promise<void> {
-        const event = await this.findById(eventId);
+    async participateInEvent(onchainEventId: string, walletAddress: string): Promise<void> {
+        const event = await this.findByOnchainEventId(onchainEventId);
         if (!event) {
             throw new NotFoundException('Event not found');
         }
@@ -416,9 +434,9 @@ export class EventsService {
 
         // Check if user is already actively participating
         const activeParticipation = await this.neo4jService.runQuery(
-            `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
+            `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {onchainEventId: $onchainEventId})
              RETURN r`,
-            { userId, eventId }
+            { walletAddress, onchainEventId }
         );
 
         if (activeParticipation.length > 0) {
@@ -427,27 +445,22 @@ export class EventsService {
 
         // Check if user has a previous (inactive) participation relationship
         const previousParticipation = await this.neo4jService.runQuery(
-            `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: false}]->(e:Event {id: $eventId})
+            `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: false}]->(e:Event {onchainEventId: $onchainEventId})
              RETURN r
              ORDER BY r.joinedAt DESC
              LIMIT 1`,
-            { userId, eventId }
+            { walletAddress, onchainEventId }
         );
 
-        const user = await this.usersService.findById(userId);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
         // Generate QR code for participation verification
-        console.log(`Generating QR code for user, wallet address: ${user.walletAddress}, participating in event, onchain event id: ${event.onchainEventId}`);
-        const qrCodeUrl = await this.qrService.generateParticipationQR(user.walletAddress, event.onchainEventId);
+        console.log(`Generating QR code for user, wallet address: ${walletAddress}, participating in event, onchain event id: ${onchainEventId}`);
+        const qrCodeUrl = await this.qrService.generateParticipationQR(walletAddress, onchainEventId);
 
         if (previousParticipation.length > 0) {
             // Reactivate existing relationship and update QR code
-            console.log(`Reactivating previous participation for user ${userId} in event ${eventId}`);
+            console.log(`Reactivating previous participation for user ${walletAddress} in event ${onchainEventId}`);
             await this.neo4jService.runWriteRelationQuery(
-                `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: false}]->(e:Event {id: $eventId})
+                `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: false}]->(e:Event {onchainEventId: $onchainEventId})
                  SET r.isActive = true, 
                      r.rejoinedAt = datetime($rejoinedAt),
                      r.qrCodeUrl = $qrCodeUrl,
@@ -456,8 +469,8 @@ export class EventsService {
                  SET e.updatedAt = datetime($updatedAt)
                  RETURN e`,
                 {
-                    userId,
-                    eventId,
+                    walletAddress,
+                    onchainEventId,
                     rejoinedAt: new Date().toISOString(),
                     qrCodeUrl,
                     updatedAt: new Date().toISOString(),
@@ -465,9 +478,9 @@ export class EventsService {
             );
         } else {
             // Create new participation relationship
-            console.log(`Creating new participation for user ${userId} in event ${eventId}`);
+            console.log(`Creating new participation for user ${walletAddress} in event ${onchainEventId}`);
             await this.neo4jService.runWriteRelationQuery(
-                `MATCH (u:User {id: $userId}), (e:Event {id: $eventId})
+                `MATCH (u:User {walletAddress: $walletAddress}), (e:Event {onchainEventId: $onchainEventId})
                  CREATE (u)-[:PARTICIPANT_OF {
                     joinedAt: datetime($joinedAt), 
                     isActive: true,
@@ -477,8 +490,8 @@ export class EventsService {
                  SET e.updatedAt = datetime($updatedAt)
                  RETURN e`,
                 {
-                    userId,
-                    eventId,
+                    walletAddress,
+                    onchainEventId,
                     joinedAt: new Date().toISOString(),
                     qrCodeUrl,
                     updatedAt: new Date().toISOString(),
@@ -486,23 +499,23 @@ export class EventsService {
             );
         }
 
-        console.log(`User ${userId} successfully joined event ${eventId} with QR code: ${qrCodeUrl}`);
+        console.log(`User ${walletAddress} successfully joined event ${onchainEventId} with QR code: ${qrCodeUrl}`);
     }
 
     /**
      * Leave an event
      */
-    async leaveEvent(eventId: string, userId: string): Promise<void> {
-        const event = await this.findById(eventId);
+    async leaveEvent(onchainEventId: string, walletAddress: string): Promise<void> {
+        const event = await this.findByOnchainEventId(onchainEventId);
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
         // Check if user is participating and get QR code URL
         const participation = await this.neo4jService.runQuery(
-            `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
+            `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {onchainEventId: $onchainEventId})
              RETURN r.qrCodeUrl as qrCodeUrl`,
-            { userId, eventId }
+            { walletAddress, onchainEventId }
         );
 
         if (participation.length === 0) {
@@ -513,7 +526,7 @@ export class EventsService {
         const qrCodeUrl = participation[0]?.qrCodeUrl;
         if (qrCodeUrl) {
             try {
-                console.log(`Deleting QR code for user ${userId} leaving event ${eventId}: ${qrCodeUrl}`);
+                console.log(`Deleting QR code for user ${walletAddress} leaving event ${onchainEventId}: ${qrCodeUrl}`);
                 await this.qrService.deleteQRCode(qrCodeUrl);
             } catch (error) {
                 console.error(`Failed to delete QR code: ${qrCodeUrl}`, error);
@@ -523,13 +536,13 @@ export class EventsService {
 
         // Deactivate participation and update event
         await this.neo4jService.runWriteRelationQuery(
-            `MATCH (u:User {id: $userId})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {id: $eventId})
+            `MATCH (u:User {walletAddress: $walletAddress})-[r:PARTICIPANT_OF {isActive: true}]->(e:Event {onchainEventId: $onchainEventId})
              SET r.isActive = false, r.leftAt = datetime($leftAt), r.qrCodeUrl = null
              SET e.currentParticipants = e.currentParticipants - 1
              SET e.updatedAt = datetime($updatedAt)`,
             {
-                userId,
-                eventId,
+                walletAddress,
+                onchainEventId,
                 leftAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             }
@@ -539,29 +552,17 @@ export class EventsService {
     /**
      * Fund an event
      */
-    async fundEvent(eventId: string, fundEventDto: FundEventDto): Promise<Event> {
-        const event = await this.findById(eventId);
+    async fundEvent(onchainEventId: string, fundEventDto: FundEventDto): Promise<Event> {
+        const event = await this.findByOnchainEventId(onchainEventId);
         if (!event) {
             throw new NotFoundException('Event not found');
         }
 
-        if (event.status !== 'draft') {
-            throw new BadRequestException('Only draft events can be funded');
-        }
-
-        if (event.sponsorId) {
-            throw new BadRequestException('Event is already funded');
-        }
-
-        if (fundEventDto.amount !== event.fundingRequired) {
-            throw new BadRequestException('Funding amount must match the required amount');
-        }
-
         // Create sponsorship relationship and update event
         const result = await this.neo4jService.runWriteRelationQuery(
-            `MATCH (u:User {id: $sponsorId}), (e:Event {id: $eventId})
+            `MATCH (u:User {walletAddress: $sponsorWalletAddress}), (e:Event {onchainEventId: $onchainEventId})
              CREATE (u)-[:SPONSOR_OF {amount: $amount, fundedAt: datetime($fundedAt)}]->(e)
-             SET e.sponsorId = $sponsorId
+             SET e.sponsorId = u.id
              SET e.sponsorAmount = $amount
              SET e.sponsorFundedAt = datetime($fundedAt)
              SET e.currentFunding = $amount
@@ -570,8 +571,8 @@ export class EventsService {
              SET e.updatedAt = datetime($updatedAt)
              RETURN e`,
             {
-                sponsorId: fundEventDto.sponsorId,
-                eventId,
+                sponsorWalletAddress: fundEventDto.sponsorWalletAddress,
+                onchainEventId,
                 amount: fundEventDto.amount,
                 fundedAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
