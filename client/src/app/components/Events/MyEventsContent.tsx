@@ -43,9 +43,6 @@ const MyEventsContent = () => {
         }
     }, [tab, isActive, user]);
 
-
-    console.log(events, "events.....");
-
     return (
         <>
             <section className="flex items-center justify-between gap-4">
