@@ -1,0 +1,22 @@
+import React from 'react'
+
+import TopBar from './TopBar';
+import Navbar from './Navbar';
+
+interface AppLayoutProps {
+    children: React.ReactNode;
+    showTopbar?: boolean;
+}
+const AppLayout: React.FC<AppLayoutProps> = ({ children, showTopbar = true }) => {
+    return (
+        <div className='w-full h-auto relative pb-12 lg:pb-20'>
+            {showTopbar ? (
+                <TopBar />
+            ) : ''}
+            <Navbar />
+            {children}
+        </div>
+    )
+}
+
+export default AppLayout

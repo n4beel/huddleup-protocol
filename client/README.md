@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HuddleUp Protocol Client
 
-## Getting Started
+This is the Next.js client application for the HuddleUp Protocol.
 
-First, run the development server:
+## Setup
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```env
+NEXT_PUBLIC_WEB3AUTH_CLIENT_ID=your_web3auth_client_id
+NEXT_PUBLIC_WEB3AUTH_NETWORK=SAPPHIRE_MAINNET
+NEXT_PUBLIC_BASE_URL=http://localhost:4000
+NEXT_PUBLIC_MFA_LEVEL=OPTIONAL
+```
+
+### Web3Auth Configuration
+
+**Important**: The Web3Auth setup uses **SAPPHIRE_MAINNET** which provides gasless transactions. This solves the "insufficient funds" error you were experiencing.
+
+To switch networks, set `NEXT_PUBLIC_WEB3AUTH_NETWORK` to:
+- `SAPPHIRE_MAINNET` - For production (recommended, has gasless transactions)
+- `SAPPHIRE_DEVNET` - For development
+
+### Fixed Issues
+
+1. **Insufficient Funds Error**: Fixed by using Sapphire Mainnet which provides gasless transactions
+2. **Contract Call Bug**: Fixed the `writeContract` function call in the event detail page
+
+## Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Building
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Key Features
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Web3Auth integration for social login and wallet connections
+- Event creation and management
+- PYUSD airdrop functionality
+- On-chain event verification
+- Real-time participant tracking
